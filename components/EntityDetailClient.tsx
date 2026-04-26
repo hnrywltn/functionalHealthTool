@@ -312,6 +312,15 @@ export default function EntityDetailClient({ config, record, relationships, allC
                     onChange={(e) => setForm((f) => ({ ...f, [field.key]: e.target.value }))}
                   />
                 )
+              ) : field.key === "website" && form[field.key] ? (
+                <a
+                  href={form[field.key].startsWith("http") ? form[field.key] : `https://${form[field.key]}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-[var(--color-text)] hover:underline break-all"
+                >
+                  {form[field.key]}
+                </a>
               ) : (
                 <p className="text-sm text-[var(--color-text)] whitespace-pre-wrap">
                   {form[field.key] || (
