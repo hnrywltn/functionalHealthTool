@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { EntityConfig, FieldDef } from "@/lib/entities";
@@ -47,6 +47,8 @@ export default function EntityDetailClient({ config, record, relationships, allC
   });
   const [uploading, setUploading] = useState<Record<string, boolean>>({});
   const [previewKey, setPreviewKey] = useState<string | null>(null);
+  const [vendorWebsites, setVendorWebsites] = useState<Record<string, string | null>>({});
+  const [openVendorPopover, setOpenVendorPopover] = useState<string | null>(null);
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [saving, setSaving] = useState(false);
   const [rels, setRels] = useState<Relationship[]>(relationships);
@@ -166,9 +168,29 @@ export default function EntityDetailClient({ config, record, relationships, allC
     setFileValues((fv) => ({ ...fv, [fieldKey]: fv[fieldKey].filter((k) => k !== key) }));
   }
 
-  // Group relationships by entity type
+  async function handleVendorClick(entityId: string) {
+    if (openVendorPopover === entityId) { setOpenVendorPopover(null); return; }
+    setOpenVendorPopover(entityId);
+    if (!(entityId in vendorWebsites)) {
+      const res = await fetch(`/api/entities/vendors/${entityId}`);
+      const data = await res.json();
+      setVendorWebsites((prev) => ({ ...prev, [entityId]: data.website ?? null }));
+    }
+  }
+
+  useEffect(() => {
+    if (!openVendorPopover) return;
+    function handleClick() { setOpenVendorPopover(null); }
+    document.addEventListener("click", handleClick);
+    return () => document.removeEventListener("click", handleClick);
+  }, [openVendorPopover]);
+
+  // Vendor rels shown in the main section
+  const vendorRels = rels.filter((r) => r.entity_type === "vendors");
+
+  // Group non-vendor relationships by entity type for the connections section
   const relsByType = allConfigs
-    .filter((c) => c.type !== config.type)
+    .filter((c) => c.type !== config.type && c.type !== "vendors")
     .map((c) => ({
       config: c,
       items: rels.filter((r) => r.entity_type === c.type),
@@ -331,6 +353,57 @@ export default function EntityDetailClient({ config, record, relationships, allC
             </dd>
           </div>
         ))}
+
+        {/* Vendors & Pharmacies row — shown inline in the fields card */}
+        {!isNew && vendorRels.length > 0 && (
+          <div className="px-5 py-4 grid grid-cols-3 gap-4">
+            <dt className="text-sm font-medium text-[var(--color-muted)] pt-0.5">Vendors & Pharmacies</dt>
+            <dd className="col-span-2">
+              <div className="flex flex-wrap gap-2">
+                {vendorRels.map((rel) => (
+                  <div key={rel.relationship_id} className="relative" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      onClick={() => handleVendorClick(rel.entity_id)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm bg-orange-100 text-orange-800 hover:bg-orange-200 transition-colors"
+                    >
+                      {rel.name}
+                    </button>
+                    {openVendorPopover === rel.entity_id && (
+                      <div className="absolute top-full left-0 mt-1.5 bg-white border border-[var(--color-border)] rounded-xl shadow-lg z-20 overflow-hidden min-w-[190px]">
+                        {vendorWebsites[rel.entity_id] ? (
+                          <a
+                            href={vendorWebsites[rel.entity_id]!.startsWith("http") ? vendorWebsites[rel.entity_id]! : `https://${vendorWebsites[rel.entity_id]}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 px-4 py-2.5 hover:bg-[var(--color-background)] text-sm text-[var(--color-text)] transition-colors"
+                          >
+                            Open website ↗
+                          </a>
+                        ) : vendorWebsites[rel.entity_id] === null ? null : (
+                          <p className="px-4 py-2.5 text-sm text-[var(--color-muted)]">Loading…</p>
+                        )}
+                        <Link
+                          href={`/vendors/${rel.entity_id}`}
+                          className="flex items-center gap-2 px-4 py-2.5 hover:bg-[var(--color-background)] text-sm text-[var(--color-text)] border-t border-[var(--color-border)] transition-colors"
+                        >
+                          View in app →
+                        </Link>
+                        {editing && (
+                          <button
+                            onClick={() => { removeRelationship(rel.relationship_id); setOpenVendorPopover(null); }}
+                            className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-rose-50 text-sm text-rose-600 border-t border-[var(--color-border)] transition-colors"
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </dd>
+          </div>
+        )}
       </div>
 
       {/* Connections — only on saved records */}
