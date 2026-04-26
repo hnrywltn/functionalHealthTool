@@ -154,12 +154,15 @@ async function migrate() {
         name TEXT NOT NULL,
         description TEXT,
         steps TEXT,
+        formula TEXT,
         duration TEXT,
         notes TEXT,
         created_at TIMESTAMPTZ DEFAULT NOW(),
         updated_at TIMESTAMPTZ DEFAULT NOW()
       )
     `);
+
+    await client.query(`ALTER TABLE protocols ADD COLUMN IF NOT EXISTS formula TEXT`);
 
     await client.query(`
       CREATE TABLE IF NOT EXISTS vendors (

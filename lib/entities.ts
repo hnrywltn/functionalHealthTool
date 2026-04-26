@@ -119,6 +119,7 @@ export const ENTITY_CONFIGS: EntityConfig[] = [
     fields: [
       { key: "description", label: "Description", type: "textarea" },
       { key: "steps", label: "Steps", type: "textarea" },
+      { key: "formula", label: "Formula", type: "textarea" },
       { key: "duration", label: "Duration", type: "text" },
       { key: "notes", label: "Notes", type: "textarea" },
     ],
