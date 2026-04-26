@@ -58,6 +58,7 @@ export const ENTITY_CONFIGS: EntityConfig[] = [
     textColor: "text-rose-800",
     fields: [
       { key: "description", label: "Description", type: "textarea" },
+      { key: "icd10_codes", label: "ICD-10 Code(s)", type: "array" },
       { key: "notes", label: "Notes", type: "textarea" },
     ],
   },
