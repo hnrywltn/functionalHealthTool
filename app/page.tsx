@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import HeroSearch from "@/components/HeroSearch";
 
 export default function Home() {
-  redirect("/supplements");
+  return <HeroSearch />;
 }
