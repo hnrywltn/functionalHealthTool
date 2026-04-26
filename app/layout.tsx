@@ -20,7 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <footer className="bg-[var(--color-sidebar)] mt-16">
             <div className="border-t border-white/10 px-8 py-5 flex items-center justify-between">
               <p className="text-white/30 text-xs">© 2026 Light Patterns, LLC. All rights reserved.</p>
-              <p className="text-white/30 text-xs">Designed by Light Patterns</p>
+              <a href="https://lightpatternsonline.com/#contact" target="_blank" rel="noopener noreferrer" className="text-white/30 text-xs hover:text-white/60 transition-colors">Designed by Light Patterns</a>
             </div>
           </footer>
         </main>
