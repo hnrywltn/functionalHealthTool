@@ -22,10 +22,12 @@ export const ENTITY_CONFIGS: EntityConfig[] = [
     textColor: "text-emerald-800",
     fields: [
       { key: "description", label: "Description", type: "textarea" },
+      { key: "indications", label: "Indications", type: "textarea" },
       { key: "mechanism_of_action", label: "Mechanism of Action", type: "textarea" },
       { key: "dosage", label: "Dosage", type: "text" },
       { key: "forms", label: "Forms", type: "array" },
       { key: "recommended_brands", label: "Recommended Brands", type: "textarea" },
+      { key: "vendors_pharmacies", label: "Vendors / Pharmacies", type: "array" },
       { key: "when_to_take", label: "When to Take", type: "text" },
       { key: "how_long_to_take", label: "How Long to Take", type: "text" },
       { key: "prn_usage", label: "PRN Usage", type: "textarea" },

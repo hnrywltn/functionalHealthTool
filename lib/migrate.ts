@@ -24,12 +24,23 @@ async function migrate() {
         prn_usage TEXT,
         adverse_effects TEXT,
         contraindications TEXT,
+        indications TEXT,
+        vendors_pharmacies TEXT[],
         testing TEXT,
         notes TEXT,
         created_at TIMESTAMPTZ DEFAULT NOW(),
         updated_at TIMESTAMPTZ DEFAULT NOW()
       )
     `);
+
+    // Add new supplements columns to existing installs
+    for (const col of [
+      "indications TEXT",
+      "vendors_pharmacies TEXT[]",
+    ]) {
+      const [name, ...rest] = col.split(" ");
+      await client.query(`ALTER TABLE supplements ADD COLUMN IF NOT EXISTS ${name} ${rest.join(" ")}`);
+    }
 
     await client.query(`
       CREATE TABLE IF NOT EXISTS symptoms (
