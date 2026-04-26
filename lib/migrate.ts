@@ -114,17 +114,25 @@ async function migrate() {
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         name TEXT NOT NULL,
         description TEXT,
+        prescription TEXT,
         drug_class TEXT,
         dosage TEXT,
+        cost TEXT,
         mechanism_of_action TEXT,
         side_effects TEXT,
         contraindications TEXT,
         interactions TEXT,
+        vendors_pharmacies TEXT,
         notes TEXT,
         created_at TIMESTAMPTZ DEFAULT NOW(),
         updated_at TIMESTAMPTZ DEFAULT NOW()
       )
     `);
+
+    for (const col of ["prescription TEXT", "cost TEXT", "vendors_pharmacies TEXT"]) {
+      const [name, ...rest] = col.split(" ");
+      await client.query(`ALTER TABLE medications ADD COLUMN IF NOT EXISTS ${name} ${rest.join(" ")}`);
+    }
 
     await client.query(`
       CREATE TABLE IF NOT EXISTS biochemical_markers (
