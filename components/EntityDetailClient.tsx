@@ -46,6 +46,7 @@ export default function EntityDetailClient({ config, record, relationships, allC
     return out;
   });
   const [uploading, setUploading] = useState<Record<string, boolean>>({});
+  const [previewKey, setPreviewKey] = useState<string | null>(null);
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [saving, setSaving] = useState(false);
   const [rels, setRels] = useState<Relationship[]>(relationships);
@@ -250,14 +251,15 @@ export default function EntityDetailClient({ config, record, relationships, allC
                 <div className="space-y-2">
                   {(fileValues[field.key] ?? []).map((key) => (
                     <div key={key} className="flex items-center gap-2">
-                      <a
-                        href={`/api/files/${key}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-[var(--color-text)] hover:underline truncate"
-                      >
+                      <span className="text-sm text-[var(--color-text)] truncate flex-1">
                         {key.split("/").pop()}
-                      </a>
+                      </span>
+                      <button
+                        onClick={() => setPreviewKey(key)}
+                        className="text-xs px-2 py-1 border border-[var(--color-border)] rounded-md hover:border-[var(--color-accent-hover)] transition-colors shrink-0"
+                      >
+                        View
+                      </button>
                       {editing && (
                         <button
                           onClick={() => removeFile(field.key, key)}
@@ -401,6 +403,49 @@ export default function EntityDetailClient({ config, record, relationships, allC
             )}
           </div>
         </section>
+      )}
+
+      {/* File preview modal */}
+      {previewKey && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+          onClick={() => setPreviewKey(null)}
+        >
+          <div
+            className="relative bg-white rounded-xl shadow-2xl overflow-hidden"
+            style={{ width: "min(90vw, 960px)", height: "min(90vh, 800px)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--color-border)]">
+              <span className="text-sm font-medium text-[var(--color-text)] truncate">
+                {previewKey.split("/").pop()}
+              </span>
+              <button
+                onClick={() => setPreviewKey(null)}
+                className="text-[var(--color-muted)] hover:text-[var(--color-text)] text-xl leading-none ml-4 shrink-0"
+              >
+                ×
+              </button>
+            </div>
+            {/\.(png|jpe?g|webp|gif)$/i.test(previewKey) ? (
+              <div className="flex items-center justify-center h-[calc(100%-49px)] bg-[var(--color-background)] p-4">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={`/api/files/${previewKey}`}
+                  alt={previewKey.split("/").pop()}
+                  className="max-w-full max-h-full object-contain"
+                />
+              </div>
+            ) : (
+              <iframe
+                src={`/api/files/${previewKey}`}
+                className="w-full"
+                style={{ height: "calc(100% - 49px)" }}
+                title={previewKey.split("/").pop()}
+              />
+            )}
+          </div>
+        </div>
       )}
     </div>
   );
