@@ -481,7 +481,7 @@ export default function EntityDetailClient({ config, record, relationships, allC
               }}
             />
             {(relResults.length > 0 || searching) && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[var(--color-border)] rounded-xl shadow-lg z-10 overflow-hidden">
+              <div className="absolute bottom-full left-0 right-0 mb-1 bg-white border border-[var(--color-border)] rounded-xl shadow-lg z-10 overflow-y-auto max-h-72">
                 {searching ? (
                   <p className="px-4 py-3 text-sm text-[var(--color-muted)]">Searching…</p>
                 ) : (
