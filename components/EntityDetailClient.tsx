@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { EntityConfig, FieldDef } from "@/lib/entities";
@@ -35,6 +35,18 @@ export default function EntityDetailClient({ config, record, relationships, allC
     }
     return out;
   });
+  const [fileValues, setFileValues] = useState<Record<string, string[]>>(() => {
+    const out: Record<string, string[]> = {};
+    for (const f of config.fields) {
+      if (f.type === "file") {
+        const val = record?.[f.key];
+        out[f.key] = Array.isArray(val) ? (val as string[]) : [];
+      }
+    }
+    return out;
+  });
+  const [uploading, setUploading] = useState<Record<string, boolean>>({});
+  const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [saving, setSaving] = useState(false);
   const [rels, setRels] = useState<Relationship[]>(relationships);
   const [relSearch, setRelSearch] = useState("");
@@ -45,7 +57,9 @@ export default function EntityDetailClient({ config, record, relationships, allC
     setSaving(true);
     const body: Record<string, unknown> = { name: form.name };
     for (const f of config.fields) {
-      if (f.type === "array") {
+      if (f.type === "file") {
+        body[f.key] = fileValues[f.key] ?? [];
+      } else if (f.type === "array") {
         body[f.key] = form[f.key]
           ? form[f.key].split(",").map((s) => s.trim()).filter(Boolean)
           : [];
@@ -137,6 +151,20 @@ export default function EntityDetailClient({ config, record, relationships, allC
     setRels((prev) => prev.filter((r) => r.relationship_id !== relationshipId));
   }
 
+  async function handleFileUpload(fieldKey: string, file: File) {
+    setUploading((u) => ({ ...u, [fieldKey]: true }));
+    const fd = new FormData();
+    fd.append("file", file);
+    const res = await fetch("/api/upload", { method: "POST", body: fd });
+    const { key } = await res.json();
+    setFileValues((fv) => ({ ...fv, [fieldKey]: [...(fv[fieldKey] ?? []), key] }));
+    setUploading((u) => ({ ...u, [fieldKey]: false }));
+  }
+
+  function removeFile(fieldKey: string, key: string) {
+    setFileValues((fv) => ({ ...fv, [fieldKey]: fv[fieldKey].filter((k) => k !== key) }));
+  }
+
   // Group relationships by entity type
   const relsByType = allConfigs
     .filter((c) => c.type !== config.type)
@@ -218,7 +246,56 @@ export default function EntityDetailClient({ config, record, relationships, allC
           <div key={field.key} className="px-5 py-4 grid grid-cols-3 gap-4">
             <dt className="text-sm font-medium text-[var(--color-muted)] pt-0.5">{field.label}</dt>
             <dd className="col-span-2">
-              {editing ? (
+              {field.type === "file" ? (
+                <div className="space-y-2">
+                  {(fileValues[field.key] ?? []).map((key) => (
+                    <div key={key} className="flex items-center gap-2">
+                      <a
+                        href={`/api/files/${key}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-[var(--color-text)] hover:underline truncate"
+                      >
+                        {key.split("/").pop()}
+                      </a>
+                      {editing && (
+                        <button
+                          onClick={() => removeFile(field.key, key)}
+                          className="text-[var(--color-muted)] hover:text-rose-500 text-lg leading-none shrink-0"
+                          title="Remove"
+                        >
+                          ×
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  {editing && (
+                    <>
+                      <input
+                        ref={(el) => { fileInputRefs.current[field.key] = el; }}
+                        type="file"
+                        accept=".pdf,.png,.jpg,.jpeg,.webp"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleFileUpload(field.key, file);
+                          e.target.value = "";
+                        }}
+                      />
+                      <button
+                        onClick={() => fileInputRefs.current[field.key]?.click()}
+                        disabled={uploading[field.key]}
+                        className="text-sm px-3 py-1.5 border border-[var(--color-border)] rounded-lg hover:border-[var(--color-accent-hover)] disabled:opacity-50 transition-colors"
+                      >
+                        {uploading[field.key] ? "Uploading…" : "+ Add file"}
+                      </button>
+                    </>
+                  )}
+                  {!editing && (fileValues[field.key] ?? []).length === 0 && (
+                    <span className="text-sm text-[var(--color-muted)]">—</span>
+                  )}
+                </div>
+              ) : editing ? (
                 field.type !== "text" ? (
                   <textarea
                     className="w-full text-sm text-[var(--color-text)] bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg px-3 py-2 resize-none outline-none focus:border-[var(--color-sidebar)] transition-colors min-h-[80px]"

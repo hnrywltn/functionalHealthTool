@@ -26,6 +26,7 @@ async function migrate() {
         contraindications TEXT,
         indications TEXT,
         vendors_pharmacies TEXT[],
+        documents TEXT[],
         testing TEXT,
         notes TEXT,
         created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -37,6 +38,7 @@ async function migrate() {
     for (const col of [
       "indications TEXT",
       "vendors_pharmacies TEXT[]",
+      "documents TEXT[]",
     ]) {
       const [name, ...rest] = col.split(" ");
       await client.query(`ALTER TABLE supplements ADD COLUMN IF NOT EXISTS ${name} ${rest.join(" ")}`);

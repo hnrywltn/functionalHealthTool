@@ -1,7 +1,7 @@
 export type FieldDef = {
   key: string;
   label: string;
-  type: "text" | "textarea" | "array";
+  type: "text" | "textarea" | "array" | "file";
 };
 
 export type EntityConfig = {
@@ -28,6 +28,7 @@ export const ENTITY_CONFIGS: EntityConfig[] = [
       { key: "forms", label: "Forms", type: "array" },
       { key: "recommended_brands", label: "Recommended Brands", type: "textarea" },
       { key: "vendors_pharmacies", label: "Vendors / Pharmacies", type: "array" },
+      { key: "documents", label: "Documents", type: "file" },
       { key: "when_to_take", label: "When to Take", type: "text" },
       { key: "how_long_to_take", label: "How Long to Take", type: "text" },
       { key: "prn_usage", label: "PRN Usage", type: "textarea" },
