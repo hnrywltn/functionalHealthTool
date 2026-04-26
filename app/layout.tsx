@@ -15,7 +15,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${geist.variable} h-full`}>
       <body className="h-full flex antialiased" suppressHydrationWarning>
         <Sidebar />
-        <main className="flex-1 overflow-y-auto">{children}</main>
+        <main className="flex-1 overflow-y-auto flex flex-col">
+          <div className="flex-1">{children}</div>
+          <footer className="bg-[var(--color-sidebar)] mt-16">
+            <div className="border-t border-white/10 px-8 py-5 flex items-center justify-between">
+              <p className="text-white/30 text-xs">© 2026 Light Patterns, LLC. All rights reserved.</p>
+              <p className="text-white/30 text-xs">Designed by Light Patterns</p>
+            </div>
+          </footer>
+        </main>
       </body>
     </html>
   );

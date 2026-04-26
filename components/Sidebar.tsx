@@ -9,11 +9,11 @@ export default function Sidebar() {
 
   return (
     <aside className="w-56 shrink-0 bg-[var(--color-sidebar)] min-h-screen flex flex-col">
-      <div className="px-5 py-6 border-b border-white/10">
+      <Link href="/" className="px-5 py-6 border-b border-white/10 block hover:bg-white/5 transition-colors">
         <p className="text-white/40 text-xs uppercase tracking-widest font-medium">
           Health Reference
         </p>
-      </div>
+      </Link>
       <nav className="flex-1 px-3 py-4 space-y-0.5">
         {ENTITY_CONFIGS.map((entity) => {
           const active = pathname.startsWith(`/${entity.type}`);
