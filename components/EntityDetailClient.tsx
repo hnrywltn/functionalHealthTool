@@ -53,6 +53,7 @@ export default function EntityDetailClient({ config, record, relationships, allC
   const [saving, setSaving] = useState(false);
   const [rels, setRels] = useState<Relationship[]>(relationships);
   const [relSearch, setRelSearch] = useState("");
+  const [relFilter, setRelFilter] = useState("all");
   const [relResults, setRelResults] = useState<{ id: string; name: string; type: string }[]>([]);
   const [searching, setSearching] = useState(false);
 
@@ -97,21 +98,22 @@ export default function EntityDetailClient({ config, record, relationships, allC
     router.push(`/${config.type}`);
   }
 
-  async function searchRelated(query: string) {
+  async function searchRelated(query: string, filter = relFilter) {
     if (!query.trim()) { setRelResults([]); return; }
     setSearching(true);
     const results: { id: string; name: string; type: string }[] = [];
+    const targets = allConfigs.filter((c) =>
+      c.type !== config.type && (filter === "all" || c.type === filter)
+    );
     await Promise.all(
-      allConfigs
-        .filter((c) => c.type !== config.type)
-        .map(async (c) => {
-          const res = await fetch(`/api/entities/${c.type}`);
-          const rows = await res.json();
-          const matches = rows.filter((r: { name: string }) =>
-            r.name.toLowerCase().includes(query.toLowerCase())
-          );
-          results.push(...matches.map((r: { id: string; name: string }) => ({ id: r.id, name: r.name, type: c.type })));
-        })
+      targets.map(async (c) => {
+        const res = await fetch(`/api/entities/${c.type}`);
+        const rows = await res.json();
+        const matches = rows.filter((r: { name: string }) =>
+          r.name.toLowerCase().includes(query.toLowerCase())
+        );
+        results.push(...matches.map((r: { id: string; name: string }) => ({ id: r.id, name: r.name, type: c.type })));
+      })
     );
     setRelResults(results);
     setSearching(false);
@@ -449,6 +451,25 @@ export default function EntityDetailClient({ config, record, relationships, allC
           )}
 
           {/* Add connection */}
+          <div>
+            {/* Category filter chips */}
+            <div className="flex flex-wrap gap-1.5 mb-3">
+              <button
+                onClick={() => { setRelFilter("all"); if (relSearch) searchRelated(relSearch, "all"); }}
+                className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${relFilter === "all" ? "bg-[var(--color-text)] text-white border-[var(--color-text)]" : "bg-white text-[var(--color-muted)] border-[var(--color-border)] hover:text-[var(--color-text)]"}`}
+              >
+                All
+              </button>
+              {allConfigs.filter((c) => c.type !== config.type).map((c) => (
+                <button
+                  key={c.type}
+                  onClick={() => { setRelFilter(c.type); if (relSearch) searchRelated(relSearch, c.type); }}
+                  className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${relFilter === c.type ? "bg-[var(--color-text)] text-white border-[var(--color-text)]" : "bg-white text-[var(--color-muted)] border-[var(--color-border)] hover:text-[var(--color-text)]"}`}
+                >
+                  {c.labelPlural}
+                </button>
+              ))}
+            </div>
           <div className="relative">
             <input
               className="w-full px-4 py-2.5 bg-white border border-[var(--color-border)] rounded-lg text-sm outline-none focus:border-[var(--color-sidebar)] transition-colors"
@@ -483,6 +504,7 @@ export default function EntityDetailClient({ config, record, relationships, allC
                 )}
               </div>
             )}
+          </div>
           </div>
         </section>
       )}
