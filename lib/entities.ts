@@ -8,8 +8,9 @@ export type EntityConfig = {
   type: string;
   label: string;
   labelPlural: string;
-  color: string;       // Tailwind bg class for badge
+  color: string;       // Tailwind bg class for dot + badge bg
   textColor: string;   // Tailwind text class for badge
+  hex: string;         // raw hex for inline use
   fields: FieldDef[];
 };
 
@@ -18,8 +19,9 @@ export const ENTITY_CONFIGS: EntityConfig[] = [
     type: "supplements",
     label: "Supplement",
     labelPlural: "Supplements",
-    color: "bg-emerald-100",
-    textColor: "text-emerald-800",
+    color: "bg-[#F4E9CD]",
+    textColor: "text-[#272727]",
+    hex: "#F4E9CD",
     fields: [
       { key: "description", label: "Description", type: "textarea" },
       { key: "indications", label: "Indications", type: "textarea" },
@@ -41,8 +43,9 @@ export const ENTITY_CONFIGS: EntityConfig[] = [
     type: "symptoms",
     label: "Symptom",
     labelPlural: "Symptoms",
-    color: "bg-amber-100",
-    textColor: "text-amber-800",
+    color: "bg-[#9DBEBB]",
+    textColor: "text-[#272727]",
+    hex: "#9DBEBB",
     fields: [
       { key: "description", label: "Description", type: "textarea" },
       { key: "related_biochemistry", label: "Related Biochemistry", type: "textarea" },
@@ -53,8 +56,9 @@ export const ENTITY_CONFIGS: EntityConfig[] = [
     type: "diagnoses",
     label: "Diagnosis",
     labelPlural: "Diagnoses",
-    color: "bg-rose-100",
-    textColor: "text-rose-800",
+    color: "bg-[#77ACA2]",
+    textColor: "text-[#272727]",
+    hex: "#77ACA2",
     fields: [
       { key: "description", label: "Description", type: "textarea" },
       { key: "icd10_codes", label: "ICD-10 Code(s)", type: "array" },
@@ -65,8 +69,9 @@ export const ENTITY_CONFIGS: EntityConfig[] = [
     type: "labs",
     label: "Lab",
     labelPlural: "Labs",
-    color: "bg-blue-100",
-    textColor: "text-blue-800",
+    color: "bg-[#468189]",
+    textColor: "text-[#FEFEFA]",
+    hex: "#468189",
     fields: [
       { key: "description", label: "Description", type: "textarea" },
       { key: "what_it_measures", label: "What It Measures", type: "textarea" },
@@ -81,8 +86,9 @@ export const ENTITY_CONFIGS: EntityConfig[] = [
     type: "medications",
     label: "Medication",
     labelPlural: "Medications",
-    color: "bg-purple-100",
-    textColor: "text-purple-800",
+    color: "bg-[#031926]",
+    textColor: "text-[#FEFEFA]",
+    hex: "#031926",
     fields: [
       { key: "description", label: "Description", type: "textarea" },
       { key: "prescription", label: "Prescription (Rx)", type: "text" },
@@ -100,8 +106,9 @@ export const ENTITY_CONFIGS: EntityConfig[] = [
     type: "biochemical_markers",
     label: "Bio Marker",
     labelPlural: "Bio Markers",
-    color: "bg-teal-100",
-    textColor: "text-teal-800",
+    color: "bg-[#272727]",
+    textColor: "text-[#FEFEFA]",
+    hex: "#272727",
     fields: [
       { key: "description", label: "Description", type: "textarea" },
       { key: "normal_range", label: "Normal Range", type: "text" },
@@ -114,8 +121,9 @@ export const ENTITY_CONFIGS: EntityConfig[] = [
     type: "protocols",
     label: "Protocol",
     labelPlural: "Protocols",
-    color: "bg-indigo-100",
-    textColor: "text-indigo-800",
+    color: "bg-[#77ACA2]",
+    textColor: "text-[#272727]",
+    hex: "#77ACA2",
     fields: [
       { key: "description", label: "Description", type: "textarea" },
       { key: "steps", label: "Steps", type: "textarea" },
@@ -128,8 +136,9 @@ export const ENTITY_CONFIGS: EntityConfig[] = [
     type: "vendors",
     label: "Vendor / Pharmacy",
     labelPlural: "Vendors & Pharmacies",
-    color: "bg-orange-100",
-    textColor: "text-orange-800",
+    color: "bg-[#9DBEBB]",
+    textColor: "text-[#272727]",
+    hex: "#9DBEBB",
     fields: [
       { key: "description", label: "Description", type: "textarea" },
       { key: "website", label: "Website", type: "text" },
