@@ -10,6 +10,7 @@
   --color-muted: #7a8c88;
   --color-accent: #cfdbd5;       /* Alabaster Grey — buttons, links, highlights */
   --color-accent-hover: #b8c9c3;
+  --color-accent-warm: #FE6959;  /* Coral — splash page accent */
 
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);

@@ -58,7 +58,7 @@ export default function HeroSearch() {
     <div className="max-w-3xl mx-auto px-6 py-16">
       {/* Header */}
       <div className="mb-10">
-        <h1 className="text-3xl font-semibold text-[var(--color-text)] mb-2">
+        <h1 className="text-3xl font-semibold text-[var(--color-accent-warm)] mb-2">
           Health Reference
         </h1>
         <p className="text-[var(--color-muted)] text-sm">
