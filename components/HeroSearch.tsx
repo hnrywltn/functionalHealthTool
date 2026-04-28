@@ -62,7 +62,7 @@ export default function HeroSearch() {
           Health Reference
         </h1>
         <p className="text-[var(--color-muted)] text-sm">
-          Anna&apos;s functional health practitioner library
+          Functional health practitioner library
         </p>
       </div>
 
