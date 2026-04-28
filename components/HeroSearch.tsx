@@ -56,7 +56,7 @@ export default function HeroSearch() {
     <div className="min-h-screen flex flex-col items-center justify-center px-6 py-16 bg-[var(--color-background)]">
       {/* Header */}
       <div className="w-full max-w-2xl mb-12 text-center">
-        <h1 className="text-6xl font-bold text-[var(--color-accent-warm)] mb-4 tracking-tight">
+        <h1 className="text-6xl font-bold text-[#FE6959] mb-4 tracking-tight">
           Health Reference
         </h1>
         <p className="text-[var(--color-muted)] text-base">
@@ -82,7 +82,7 @@ export default function HeroSearch() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search supplements, symptoms, labs…"
-            className="w-full pl-11 pr-4 py-4 rounded-xl border-2 border-[var(--color-accent-warm)] bg-white text-[var(--color-text)] placeholder-[var(--color-muted)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-warm)]/30 shadow-sm"
+            className="w-full pl-11 pr-4 py-4 rounded-xl border-2 border-[#FE6959] bg-white text-[var(--color-text)] placeholder-[var(--color-muted)] text-sm focus:outline-none focus:ring-2 focus:ring-[#FE6959]/30 shadow-sm"
           />
           {searching && (
             <div className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-[var(--color-muted)] border-t-transparent rounded-full animate-spin" />
@@ -95,7 +95,7 @@ export default function HeroSearch() {
             onClick={() => setFilter("all")}
             className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${
               filter === "all"
-                ? "bg-[var(--color-accent-warm)] text-white border-[var(--color-accent-warm)]"
+                ? "bg-[#FE6959] text-white border-[#FE6959]"
                 : "bg-white text-[var(--color-muted)] border-[var(--color-border)] hover:text-[var(--color-text)]"
             }`}
           >
@@ -107,7 +107,7 @@ export default function HeroSearch() {
               onClick={() => setFilter(ec.type)}
               className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${
                 filter === ec.type
-                  ? "bg-[var(--color-accent-warm)] text-white border-[var(--color-accent-warm)]"
+                  ? "bg-[#FE6959] text-white border-[#FE6959]"
                   : "bg-white text-[var(--color-muted)] border-[var(--color-border)] hover:text-[var(--color-text)]"
               }`}
             >
@@ -130,7 +130,7 @@ export default function HeroSearch() {
                   <Link
                     key={`${r.entity_type}-${r.id}`}
                     href={`/${r.entity_type}/${r.id}`}
-                    className="flex items-center gap-3 px-4 py-3 rounded-lg bg-white border border-[var(--color-border)] hover:border-[var(--color-accent-warm)]/40 hover:shadow-sm transition-all group"
+                    className="flex items-center gap-3 px-4 py-3 rounded-lg bg-white border border-[var(--color-border)] hover:border-[#FE6959]/40 hover:shadow-sm transition-all group"
                   >
                     <span className={`w-2 h-2 rounded-full shrink-0 ${ec?.color ?? "bg-gray-200"}`} />
                     <span className="text-sm font-medium text-[var(--color-text)] group-hover:text-black flex-1">
@@ -151,7 +151,7 @@ export default function HeroSearch() {
               <Link
                 key={ec.type}
                 href={`/${ec.type}`}
-                className="group flex flex-col gap-2 p-5 rounded-xl bg-white border border-[var(--color-border)] hover:shadow-md hover:border-[var(--color-accent-warm)]/40 transition-all"
+                className="group flex flex-col gap-2 p-5 rounded-xl bg-white border border-[var(--color-border)] hover:shadow-md hover:border-[#FE6959]/40 transition-all"
               >
                 <div className="flex items-center justify-between">
                   <span className={`w-3 h-3 rounded-full ${ec.color}`} />
