@@ -7,6 +7,8 @@ import { ENTITY_CONFIGS } from "@/lib/entities";
 export default function Sidebar() {
   const pathname = usePathname();
 
+  if (pathname === "/") return null;
+
   return (
     <aside className="w-56 shrink-0 bg-[var(--color-sidebar)] min-h-screen flex flex-col">
       <Link href="/" className="px-5 py-6 border-b border-white/10 block hover:bg-white/5 transition-colors">
