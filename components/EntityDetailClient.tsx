@@ -123,6 +123,28 @@ export default function EntityDetailClient({ config, record, relationships, allC
     router.push(`/${config.type}`);
   }
 
+  async function handleDuplicate() {
+    const body: Record<string, unknown> = { name: `Copy of ${form.name}` };
+    for (const f of config.fields) {
+      if (f.type === "file") {
+        body[f.key] = fileValues[f.key] ?? [];
+      } else if (f.type === "array") {
+        body[f.key] = form[f.key]
+          ? form[f.key].split(",").map((s) => s.trim()).filter(Boolean)
+          : [];
+      } else {
+        body[f.key] = form[f.key] || null;
+      }
+    }
+    const res = await fetch(`/api/entities/${config.type}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    router.push(`/${config.type}/${data.id}?edit=1`);
+  }
+
   async function searchRelated(query: string, filter = relFilter) {
     if (!query.trim()) { setRelResults([]); return; }
     setSearching(true);
@@ -206,6 +228,12 @@ export default function EntityDetailClient({ config, record, relationships, allC
   }
 
   useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("edit") === "1") {
+      setEditing(true);
+    }
+  }, []);
+
+  useEffect(() => {
     if (!openVendorPopover) return;
     function handleClick() { setOpenVendorPopover(null); }
     document.addEventListener("click", handleClick);
@@ -278,6 +306,12 @@ export default function EntityDetailClient({ config, record, relationships, allC
                 className="px-4 py-1.5 text-sm border border-[var(--color-border)] rounded-lg hover:border-[var(--color-accent-hover)] transition-colors"
               >
                 Edit
+              </button>
+              <button
+                onClick={handleDuplicate}
+                className="px-4 py-1.5 text-sm border border-[var(--color-border)] rounded-lg hover:border-[var(--color-accent-hover)] transition-colors"
+              >
+                Duplicate
               </button>
               <button
                 onClick={handleDelete}
