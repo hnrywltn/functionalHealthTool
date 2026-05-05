@@ -165,6 +165,37 @@ async function migrate() {
     await client.query(`ALTER TABLE protocols ADD COLUMN IF NOT EXISTS formula TEXT`);
 
     await client.query(`
+      CREATE TABLE IF NOT EXISTS amino_acids (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        name TEXT NOT NULL,
+        description TEXT,
+        role TEXT,
+        food_sources TEXT,
+        deficiency_signs TEXT,
+        normal_range TEXT,
+        dosage TEXT,
+        notes TEXT,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS genetics (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        name TEXT NOT NULL,
+        description TEXT,
+        gene TEXT,
+        variant TEXT,
+        clinical_significance TEXT,
+        related_conditions TEXT,
+        notes TEXT,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `);
+
+    await client.query(`
       CREATE TABLE IF NOT EXISTS vendors (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         name TEXT NOT NULL,
