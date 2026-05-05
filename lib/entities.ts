@@ -104,8 +104,8 @@ export const ENTITY_CONFIGS: EntityConfig[] = [
   },
   {
     type: "biochemical_markers",
-    label: "Bio Marker",
-    labelPlural: "Bio Markers",
+    label: "Biomarker",
+    labelPlural: "Biomarkers",
     color: "bg-[#272727]",
     textColor: "text-[#FEFEFA]",
     hex: "#272727",
