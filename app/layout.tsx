@@ -7,7 +7,7 @@ const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
 
 export const metadata: Metadata = {
   title: "Health Reference",
-  description: "Functional health practitioner reference library",
+  description: "Functional health practitioner reference library.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
