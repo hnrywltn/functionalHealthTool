@@ -5,6 +5,31 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { EntityConfig, FieldDef } from "@/lib/entities";
 
+function AutoTextarea({ className, value, onChange, placeholder }: {
+  className?: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  placeholder?: string;
+}) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = el.scrollHeight + "px";
+  }, [value]);
+  return (
+    <textarea
+      ref={ref}
+      className={className}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      rows={1}
+    />
+  );
+}
+
 type Relationship = {
   relationship_id: string;
   entity_type: string;
@@ -323,8 +348,8 @@ export default function EntityDetailClient({ config, record, relationships, allC
                 </div>
               ) : editing ? (
                 field.type !== "text" ? (
-                  <textarea
-                    className="w-full text-sm text-[var(--color-text)] bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg px-3 py-2 resize-none outline-none focus:border-[var(--color-sidebar)] transition-colors min-h-[80px]"
+                  <AutoTextarea
+                    className="w-full text-sm text-[var(--color-text)] bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg px-3 py-2 resize-none outline-none focus:border-[var(--color-sidebar)] transition-colors min-h-[80px] overflow-hidden"
                     value={form[field.key] ?? ""}
                     onChange={(e) => setForm((f) => ({ ...f, [field.key]: e.target.value }))}
                     placeholder={field.type === "array" ? "comma separated" : ""}
