@@ -209,6 +209,34 @@ async function migrate() {
     `);
 
     await client.query(`
+      CREATE TABLE IF NOT EXISTS tags (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        name TEXT NOT NULL UNIQUE,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS entity_tags (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        entity_type TEXT NOT NULL,
+        entity_id UUID NOT NULL,
+        tag_id UUID NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        UNIQUE(entity_type, entity_id, tag_id)
+      )
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_entity_tags_entity
+        ON entity_tags(entity_type, entity_id)
+    `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_entity_tags_tag
+        ON entity_tags(tag_id)
+    `);
+
+    await client.query(`
       CREATE TABLE IF NOT EXISTS entity_relationships (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         entity_type_a TEXT NOT NULL,

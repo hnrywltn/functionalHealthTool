@@ -39,14 +39,17 @@ type Relationship = {
   notes: string | null;
 };
 
+type Tag = { id: string; name: string };
+
 type Props = {
   config: EntityConfig;
   record: Record<string, unknown> | null;
   relationships: Relationship[];
+  initialTags: Tag[];
   allConfigs: EntityConfig[];
 };
 
-export default function EntityDetailClient({ config, record, relationships, allConfigs }: Props) {
+export default function EntityDetailClient({ config, record, relationships, initialTags, allConfigs }: Props) {
   const router = useRouter();
   const isNew = record === null;
 
@@ -81,6 +84,11 @@ export default function EntityDetailClient({ config, record, relationships, allC
   const [relFilter, setRelFilter] = useState("all");
   const [relResults, setRelResults] = useState<{ id: string; name: string; type: string }[]>([]);
   const [searching, setSearching] = useState(false);
+
+  const [tags, setTags] = useState<Tag[]>(initialTags);
+  const [tagInput, setTagInput] = useState("");
+  const [tagSuggestions, setTagSuggestions] = useState<Tag[]>([]);
+  const [allTags, setAllTags] = useState<Tag[]>([]);
 
   async function handleSave() {
     setSaving(true);
@@ -201,6 +209,51 @@ export default function EntityDetailClient({ config, record, relationships, allC
   async function removeRelationship(relationshipId: string) {
     await fetch(`/api/relationships?id=${relationshipId}`, { method: "DELETE" });
     setRels((prev) => prev.filter((r) => r.relationship_id !== relationshipId));
+  }
+
+  async function loadAllTags() {
+    if (allTags.length > 0) return;
+    const res = await fetch("/api/tags");
+    const data = await res.json();
+    setAllTags(data);
+  }
+
+  function handleTagInput(value: string) {
+    setTagInput(value);
+    const normalized = value.toLowerCase().replace(/^#/, "").trim();
+    if (!normalized) { setTagSuggestions([]); return; }
+    const existing = tags.map((t) => t.id);
+    setTagSuggestions(
+      allTags.filter(
+        (t) => t.name.includes(normalized) && !existing.includes(t.id)
+      ).slice(0, 6)
+    );
+  }
+
+  async function addTag(nameOrTag: string | Tag) {
+    if (isNew || !record) return;
+    const tag_name = typeof nameOrTag === "string" ? nameOrTag : nameOrTag.name;
+    const normalized = tag_name.toLowerCase().replace(/^#/, "").trim();
+    if (!normalized) return;
+    if (tags.some((t) => t.name === normalized)) { setTagInput(""); setTagSuggestions([]); return; }
+    const res = await fetch("/api/entity-tags", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ entity_type: config.type, entity_id: record.id, tag_name: normalized }),
+    });
+    const newTag = await res.json();
+    setTags((prev) => [...prev, newTag].sort((a, b) => a.name.localeCompare(b.name)));
+    setAllTags((prev) => prev.some((t) => t.id === newTag.id) ? prev : [...prev, newTag]);
+    setTagInput("");
+    setTagSuggestions([]);
+  }
+
+  async function removeTag(tagId: string) {
+    if (!record) return;
+    await fetch(`/api/entity-tags?entity_type=${config.type}&entity_id=${record.id}&tag_id=${tagId}`, {
+      method: "DELETE",
+    });
+    setTags((prev) => prev.filter((t) => t.id !== tagId));
   }
 
   async function handleFileUpload(fieldKey: string, file: File) {
@@ -564,6 +617,59 @@ export default function EntityDetailClient({ config, record, relationships, allC
               </div>
             )}
           </div>
+          </div>
+
+          {/* Tags */}
+          <div className="mt-8 pt-6 border-t border-[var(--color-border)]">
+            <h3 className="text-sm font-semibold text-[var(--color-text)] mb-3">Tags</h3>
+            <div className="flex flex-wrap gap-2 mb-3">
+              {tags.map((tag) => (
+                <span
+                  key={tag.id}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--color-background)] border border-[var(--color-border)] text-[var(--color-text)]"
+                >
+                  <Link
+                    href={`/tags/${tag.name}`}
+                    className="hover:underline"
+                  >
+                    #{tag.name}
+                  </Link>
+                  <button
+                    onClick={() => removeTag(tag.id)}
+                    className="opacity-40 hover:opacity-100 ml-0.5 leading-none"
+                    title="Remove tag"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+            <div className="relative">
+              <input
+                className="w-full px-4 py-2.5 bg-white border border-[var(--color-border)] rounded-lg text-sm outline-none focus:border-[var(--color-sidebar)] transition-colors"
+                placeholder="#tag — press Enter to add"
+                value={tagInput}
+                onFocus={loadAllTags}
+                onChange={(e) => handleTagInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") { e.preventDefault(); addTag(tagInput); }
+                  if (e.key === "Escape") { setTagInput(""); setTagSuggestions([]); }
+                }}
+              />
+              {tagSuggestions.length > 0 && (
+                <div className="absolute bottom-full left-0 right-0 mb-1 bg-white border border-[var(--color-border)] rounded-xl shadow-lg z-10 overflow-hidden">
+                  {tagSuggestions.map((t) => (
+                    <button
+                      key={t.id}
+                      onClick={() => addTag(t)}
+                      className="w-full flex items-center px-4 py-2.5 hover:bg-[var(--color-background)] text-left text-sm text-[var(--color-text)] transition-colors"
+                    >
+                      #{t.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </section>
       )}

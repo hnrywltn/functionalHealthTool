@@ -21,6 +21,7 @@ export default async function EntityDetailPage({ params }: Props) {
         config={config}
         record={null}
         relationships={[]}
+        initialTags={[]}
         allConfigs={ENTITY_CONFIGS}
       />
     );
@@ -34,6 +35,15 @@ export default async function EntityDetailPage({ params }: Props) {
     `SELECT * FROM entity_relationships
      WHERE (entity_type_a = $1 AND entity_id_a = $2)
         OR (entity_type_b = $1 AND entity_id_b = $2)`,
+    [entity, id]
+  );
+
+  // Fetch tags for this record
+  const { rows: tagRows } = await pool.query(
+    `SELECT t.id, t.name FROM tags t
+     JOIN entity_tags et ON et.tag_id = t.id
+     WHERE et.entity_type = $1 AND et.entity_id = $2
+     ORDER BY t.name ASC`,
     [entity, id]
   );
 
@@ -63,6 +73,7 @@ export default async function EntityDetailPage({ params }: Props) {
       config={config}
       record={rows[0]}
       relationships={relationships}
+      initialTags={tagRows}
       allConfigs={ENTITY_CONFIGS}
     />
   );
