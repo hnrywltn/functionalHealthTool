@@ -1,7 +1,7 @@
 export type FieldDef = {
   key: string;
   label: string;
-  type: "text" | "textarea" | "array" | "file";
+  type: "text" | "textarea" | "array";
 };
 
 export type EntityConfig = {
@@ -35,7 +35,6 @@ export const ENTITY_CONFIGS: EntityConfig[] = [
       { key: "adverse_effects", label: "Adverse Effects", type: "textarea" },
       { key: "contraindications", label: "Contraindications", type: "textarea" },
       { key: "testing", label: "Testing", type: "textarea" },
-      { key: "documents", label: "Documents", type: "file" },
       { key: "notes", label: "Notes", type: "textarea" },
     ],
   },

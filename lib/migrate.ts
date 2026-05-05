@@ -209,6 +209,65 @@ async function migrate() {
     `);
 
     await client.query(`
+      CREATE TABLE IF NOT EXISTS attachments (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        label TEXT NOT NULL,
+        file_key TEXT NOT NULL UNIQUE,
+        file_type TEXT NOT NULL DEFAULT 'other',
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS entity_attachments (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        entity_type TEXT NOT NULL,
+        entity_id UUID NOT NULL,
+        attachment_id UUID NOT NULL REFERENCES attachments(id) ON DELETE CASCADE,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        UNIQUE(entity_type, entity_id, attachment_id)
+      )
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_entity_attachments_entity
+        ON entity_attachments(entity_type, entity_id)
+    `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_entity_attachments_attachment
+        ON entity_attachments(attachment_id)
+    `);
+
+    // Migrate existing supplement documents into attachments
+    await client.query(`
+      INSERT INTO attachments (label, file_key, file_type)
+      SELECT DISTINCT
+        split_part(file_key, '/', array_length(string_to_array(file_key, '/'), 1)),
+        file_key,
+        CASE
+          WHEN file_key ~* '\\.(pdf)$' THEN 'pdf'
+          WHEN file_key ~* '\\.(png|jpe?g|webp|gif)$' THEN 'image'
+          ELSE 'other'
+        END
+      FROM (
+        SELECT unnest(documents) AS file_key
+        FROM supplements
+        WHERE documents IS NOT NULL AND cardinality(documents) > 0
+      ) docs
+      ON CONFLICT (file_key) DO NOTHING
+    `);
+
+    await client.query(`
+      INSERT INTO entity_attachments (entity_type, entity_id, attachment_id)
+      SELECT 'supplements', s.id, a.id
+      FROM supplements s
+      CROSS JOIN LATERAL unnest(s.documents) AS fk
+      JOIN attachments a ON a.file_key = fk
+      WHERE s.documents IS NOT NULL AND cardinality(s.documents) > 0
+      ON CONFLICT DO NOTHING
+    `);
+
+    await client.query(`
       CREATE TABLE IF NOT EXISTS tags (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         name TEXT NOT NULL UNIQUE,

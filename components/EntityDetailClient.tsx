@@ -40,16 +40,18 @@ type Relationship = {
 };
 
 type Tag = { id: string; name: string };
+type Attachment = { id: string; label: string; file_key: string; file_type: string };
 
 type Props = {
   config: EntityConfig;
   record: Record<string, unknown> | null;
   relationships: Relationship[];
   initialTags: Tag[];
+  initialAttachments: Attachment[];
   allConfigs: EntityConfig[];
 };
 
-export default function EntityDetailClient({ config, record, relationships, initialTags, allConfigs }: Props) {
+export default function EntityDetailClient({ config, record, relationships, initialTags, initialAttachments, allConfigs }: Props) {
   const router = useRouter();
   const isNew = record === null;
 
@@ -63,21 +65,9 @@ export default function EntityDetailClient({ config, record, relationships, init
     }
     return out;
   });
-  const [fileValues, setFileValues] = useState<Record<string, string[]>>(() => {
-    const out: Record<string, string[]> = {};
-    for (const f of config.fields) {
-      if (f.type === "file") {
-        const val = record?.[f.key];
-        out[f.key] = Array.isArray(val) ? (val as string[]) : [];
-      }
-    }
-    return out;
-  });
-  const [uploading, setUploading] = useState<Record<string, boolean>>({});
   const [previewKey, setPreviewKey] = useState<string | null>(null);
   const [vendorWebsites, setVendorWebsites] = useState<Record<string, string | null>>({});
   const [openVendorPopover, setOpenVendorPopover] = useState<string | null>(null);
-  const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [saving, setSaving] = useState(false);
   const [rels, setRels] = useState<Relationship[]>(relationships);
   const [relSearch, setRelSearch] = useState("");
@@ -90,13 +80,20 @@ export default function EntityDetailClient({ config, record, relationships, init
   const [tagSuggestions, setTagSuggestions] = useState<Tag[]>([]);
   const [allTags, setAllTags] = useState<Tag[]>([]);
 
+  const [attachments, setAttachments] = useState<Attachment[]>(initialAttachments);
+  const [attachUploading, setAttachUploading] = useState(false);
+  const [attachPending, setAttachPending] = useState<{ key: string; file_type: string } | null>(null);
+  const [attachPendingLabel, setAttachPendingLabel] = useState("");
+  const [attachSearch, setAttachSearch] = useState("");
+  const [attachResults, setAttachResults] = useState<Attachment[]>([]);
+  const [allAttachments, setAllAttachments] = useState<Attachment[]>([]);
+  const attachFileRef = useRef<HTMLInputElement>(null);
+
   async function handleSave() {
     setSaving(true);
     const body: Record<string, unknown> = { name: form.name };
     for (const f of config.fields) {
-      if (f.type === "file") {
-        body[f.key] = fileValues[f.key] ?? [];
-      } else if (f.type === "array") {
+      if (f.type === "array") {
         body[f.key] = form[f.key]
           ? form[f.key].split(",").map((s) => s.trim()).filter(Boolean)
           : [];
@@ -134,9 +131,7 @@ export default function EntityDetailClient({ config, record, relationships, init
   async function handleDuplicate() {
     const body: Record<string, unknown> = { name: `Copy of ${form.name}` };
     for (const f of config.fields) {
-      if (f.type === "file") {
-        body[f.key] = fileValues[f.key] ?? [];
-      } else if (f.type === "array") {
+      if (f.type === "array") {
         body[f.key] = form[f.key]
           ? form[f.key].split(",").map((s) => s.trim()).filter(Boolean)
           : [];
@@ -256,18 +251,79 @@ export default function EntityDetailClient({ config, record, relationships, init
     setTags((prev) => prev.filter((t) => t.id !== tagId));
   }
 
-  async function handleFileUpload(fieldKey: string, file: File) {
-    setUploading((u) => ({ ...u, [fieldKey]: true }));
+  function deriveFileType(filename: string): string {
+    if (/\.(pdf)$/i.test(filename)) return "pdf";
+    if (/\.(png|jpe?g|webp|gif)$/i.test(filename)) return "image";
+    return "other";
+  }
+
+  async function handleAttachFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = "";
+    setAttachUploading(true);
     const fd = new FormData();
     fd.append("file", file);
     const res = await fetch("/api/upload", { method: "POST", body: fd });
     const { key } = await res.json();
-    setFileValues((fv) => ({ ...fv, [fieldKey]: [...(fv[fieldKey] ?? []), key] }));
-    setUploading((u) => ({ ...u, [fieldKey]: false }));
+    setAttachPending({ key, file_type: deriveFileType(file.name) });
+    setAttachPendingLabel(file.name);
+    setAttachUploading(false);
   }
 
-  function removeFile(fieldKey: string, key: string) {
-    setFileValues((fv) => ({ ...fv, [fieldKey]: fv[fieldKey].filter((k) => k !== key) }));
+  async function saveAttachPending() {
+    if (!attachPending || !attachPendingLabel.trim() || !record) return;
+    const res = await fetch("/api/attachments", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ label: attachPendingLabel.trim(), file_key: attachPending.key, file_type: attachPending.file_type }),
+    });
+    const newAttachment: Attachment = await res.json();
+    await fetch("/api/entity-attachments", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ entity_type: config.type, entity_id: record.id, attachment_id: newAttachment.id }),
+    });
+    setAttachments((prev) => [newAttachment, ...prev]);
+    setAttachPending(null);
+    setAttachPendingLabel("");
+  }
+
+  async function loadAllAttachments() {
+    if (allAttachments.length > 0) return;
+    const res = await fetch("/api/attachments");
+    const data = await res.json();
+    setAllAttachments(data);
+  }
+
+  function handleAttachSearch(value: string) {
+    setAttachSearch(value);
+    const q = value.toLowerCase().trim();
+    if (!q) { setAttachResults([]); return; }
+    const linked = attachments.map((a) => a.id);
+    setAttachResults(
+      allAttachments.filter((a) => a.label.toLowerCase().includes(q) && !linked.includes(a.id)).slice(0, 6)
+    );
+  }
+
+  async function linkExistingAttachment(attachment: Attachment) {
+    if (!record) return;
+    await fetch("/api/entity-attachments", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ entity_type: config.type, entity_id: record.id, attachment_id: attachment.id }),
+    });
+    setAttachments((prev) => [attachment, ...prev]);
+    setAttachSearch("");
+    setAttachResults([]);
+  }
+
+  async function unlinkAttachment(attachmentId: string) {
+    if (!record) return;
+    await fetch(`/api/entity-attachments?entity_type=${config.type}&entity_id=${record.id}&attachment_id=${attachmentId}`, {
+      method: "DELETE",
+    });
+    setAttachments((prev) => prev.filter((a) => a.id !== attachmentId));
   }
 
   async function handleVendorClick(entityId: string) {
@@ -383,57 +439,7 @@ export default function EntityDetailClient({ config, record, relationships, init
           <div key={field.key} className="px-5 py-4 grid grid-cols-3 gap-4">
             <dt className="text-sm font-medium text-[var(--color-muted)] pt-0.5">{field.label}</dt>
             <dd className="col-span-2">
-              {field.type === "file" ? (
-                <div className="space-y-2">
-                  {(fileValues[field.key] ?? []).map((key) => (
-                    <div key={key} className="flex items-center gap-2">
-                      <span className="text-sm text-[var(--color-text)] truncate flex-1">
-                        {key.split("/").pop()}
-                      </span>
-                      <button
-                        onClick={() => setPreviewKey(key)}
-                        className="text-xs px-2 py-1 border border-[var(--color-border)] rounded-md hover:border-[var(--color-accent-hover)] transition-colors shrink-0"
-                      >
-                        View
-                      </button>
-                      {editing && (
-                        <button
-                          onClick={() => removeFile(field.key, key)}
-                          className="text-[var(--color-muted)] hover:text-rose-500 text-lg leading-none shrink-0"
-                          title="Remove"
-                        >
-                          ×
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                  {editing && (
-                    <>
-                      <input
-                        ref={(el) => { fileInputRefs.current[field.key] = el; }}
-                        type="file"
-                        accept=".pdf,.png,.jpg,.jpeg,.webp"
-                        className="hidden"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) handleFileUpload(field.key, file);
-                          e.target.value = "";
-                        }}
-                      />
-                      <button
-                        onClick={() => fileInputRefs.current[field.key]?.click()}
-                        disabled={uploading[field.key]}
-                        className="text-sm px-3 py-1.5 border border-[var(--color-border)] rounded-lg hover:border-[var(--color-accent-hover)] disabled:opacity-50 transition-colors"
-                      >
-                        {uploading[field.key] ? "Uploading…" : "+ Add file"}
-                      </button>
-                    </>
-                  )}
-                  {!editing && (fileValues[field.key] ?? []).length === 0 && (
-                    <span className="text-sm text-[var(--color-muted)]">—</span>
-                  )}
-                </div>
-              ) : editing ? (
+              {editing ? (
                 field.type !== "text" ? (
                   <AutoTextarea
                     className="w-full text-sm text-[var(--color-text)] bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg px-3 py-2 resize-none outline-none focus:border-[var(--color-sidebar)] transition-colors min-h-[80px] overflow-hidden"
@@ -670,6 +676,88 @@ export default function EntityDetailClient({ config, record, relationships, init
                 </div>
               )}
             </div>
+          </div>
+
+          {/* References */}
+          <div className="mt-8 pt-6 border-t border-[var(--color-border)]">
+            <h3 className="text-sm font-semibold text-[var(--color-text)] mb-3">References</h3>
+            {attachments.length > 0 && (
+              <div className="space-y-2 mb-3">
+                {attachments.map((a) => (
+                  <div key={a.id} className="flex items-center gap-2">
+                    <span className="text-sm text-[var(--color-text)] flex-1 truncate">{a.label}</span>
+                    <button
+                      onClick={() => setPreviewKey(a.file_key)}
+                      className="text-xs px-2 py-1 border border-[var(--color-border)] rounded-md hover:border-[var(--color-accent-hover)] transition-colors shrink-0"
+                    >
+                      View
+                    </button>
+                    <button
+                      onClick={() => unlinkAttachment(a.id)}
+                      className="text-[var(--color-muted)] hover:text-rose-500 text-lg leading-none shrink-0"
+                      title="Remove"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Pending upload inline form */}
+            {attachPending && (
+              <div className="mb-3 p-3 bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg space-y-2">
+                <input
+                  autoFocus
+                  className="w-full text-sm border border-[var(--color-border)] rounded-lg px-3 py-2 outline-none focus:border-[var(--color-sidebar)] transition-colors bg-white"
+                  value={attachPendingLabel}
+                  onChange={(e) => setAttachPendingLabel(e.target.value)}
+                  placeholder="Label this file…"
+                  onKeyDown={(e) => { if (e.key === "Enter") saveAttachPending(); if (e.key === "Escape") { setAttachPending(null); setAttachPendingLabel(""); } }}
+                />
+                <div className="flex gap-2 justify-end">
+                  <button onClick={() => { setAttachPending(null); setAttachPendingLabel(""); }} className="px-3 py-1 text-xs text-[var(--color-muted)] hover:text-[var(--color-text)] transition-colors">Cancel</button>
+                  <button onClick={saveAttachPending} disabled={!attachPendingLabel.trim()} className="px-3 py-1 text-xs bg-[var(--color-sidebar)] text-white rounded-md disabled:opacity-50 transition-colors">Save</button>
+                </div>
+              </div>
+            )}
+
+            {!isNew && (
+              <div className="flex gap-2">
+                <input ref={attachFileRef} type="file" accept=".pdf,.png,.jpg,.jpeg,.webp" className="hidden" onChange={handleAttachFileSelect} />
+                <button
+                  onClick={() => attachFileRef.current?.click()}
+                  disabled={attachUploading || !!attachPending}
+                  className="px-3 py-1.5 text-xs border border-[var(--color-border)] rounded-lg hover:border-[var(--color-accent-hover)] disabled:opacity-50 transition-colors"
+                >
+                  {attachUploading ? "Uploading…" : "+ Upload file"}
+                </button>
+                <div className="relative flex-1">
+                  <input
+                    className="w-full text-xs border border-[var(--color-border)] rounded-lg px-3 py-1.5 outline-none focus:border-[var(--color-sidebar)] transition-colors"
+                    placeholder="Or link existing reference…"
+                    value={attachSearch}
+                    onFocus={loadAllAttachments}
+                    onChange={(e) => handleAttachSearch(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Escape") { setAttachSearch(""); setAttachResults([]); } }}
+                  />
+                  {attachResults.length > 0 && (
+                    <div className="absolute bottom-full left-0 right-0 mb-1 bg-white border border-[var(--color-border)] rounded-xl shadow-lg z-10 overflow-hidden">
+                      {attachResults.map((a) => (
+                        <button
+                          key={a.id}
+                          onClick={() => linkExistingAttachment(a)}
+                          className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-[var(--color-background)] text-left text-sm text-[var(--color-text)] transition-colors"
+                        >
+                          <span className="flex-1 truncate">{a.label}</span>
+                          <span className="text-xs text-[var(--color-muted)] shrink-0">{a.file_type.toUpperCase()}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </section>
       )}

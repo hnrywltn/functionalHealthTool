@@ -22,6 +22,7 @@ export default async function EntityDetailPage({ params }: Props) {
         record={null}
         relationships={[]}
         initialTags={[]}
+        initialAttachments={[]}
         allConfigs={ENTITY_CONFIGS}
       />
     );
@@ -35,6 +36,16 @@ export default async function EntityDetailPage({ params }: Props) {
     `SELECT * FROM entity_relationships
      WHERE (entity_type_a = $1 AND entity_id_a = $2)
         OR (entity_type_b = $1 AND entity_id_b = $2)`,
+    [entity, id]
+  );
+
+  // Fetch attachments for this record
+  const { rows: attachmentRows } = await pool.query(
+    `SELECT a.id, a.label, a.file_key, a.file_type
+     FROM attachments a
+     JOIN entity_attachments ea ON ea.attachment_id = a.id
+     WHERE ea.entity_type = $1 AND ea.entity_id = $2
+     ORDER BY a.created_at DESC`,
     [entity, id]
   );
 
@@ -74,6 +85,7 @@ export default async function EntityDetailPage({ params }: Props) {
       record={rows[0]}
       relationships={relationships}
       initialTags={tagRows}
+      initialAttachments={attachmentRows}
       allConfigs={ENTITY_CONFIGS}
     />
   );
