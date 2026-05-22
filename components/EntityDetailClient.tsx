@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { EntityConfig, FieldDef } from "@/lib/entities";
+import PrintModal from "@/components/PrintModal";
 
 function AutoTextarea({ className, value, onChange, placeholder }: {
   className?: string;
@@ -80,6 +81,7 @@ export default function EntityDetailClient({ config, record, relationships, init
   const [tagSuggestions, setTagSuggestions] = useState<Tag[]>([]);
   const [allTags, setAllTags] = useState<Tag[]>([]);
 
+  const [printOpen, setPrintOpen] = useState(false);
   const [attachments, setAttachments] = useState<Attachment[]>(initialAttachments);
   const [attachUploading, setAttachUploading] = useState(false);
   const [attachPending, setAttachPending] = useState<{ key: string; file_type: string } | null>(null);
@@ -415,6 +417,12 @@ export default function EntityDetailClient({ config, record, relationships, init
                 className="px-4 py-1.5 text-sm border border-[var(--color-border)] rounded-lg hover:border-[var(--color-accent-hover)] transition-colors"
               >
                 Edit
+              </button>
+              <button
+                onClick={() => setPrintOpen(true)}
+                className="px-4 py-1.5 text-sm border border-[var(--color-border)] rounded-lg hover:border-[var(--color-accent-hover)] transition-colors"
+              >
+                Print
               </button>
               <button
                 onClick={handleDuplicate}
@@ -760,6 +768,20 @@ export default function EntityDetailClient({ config, record, relationships, init
             )}
           </div>
         </section>
+      )}
+
+      {/* Print modal */}
+      {printOpen && !isNew && (
+        <PrintModal
+          config={config}
+          recordName={String(record?.name ?? "")}
+          form={form}
+          rels={rels}
+          tags={tags}
+          attachments={attachments}
+          allConfigs={allConfigs}
+          onClose={() => setPrintOpen(false)}
+        />
       )}
 
       {/* File preview modal */}
