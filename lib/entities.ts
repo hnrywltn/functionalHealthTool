@@ -74,7 +74,7 @@ export const ENTITY_CONFIGS: EntityConfig[] = [
     fields: [
       { key: "description", label: "Description", type: "textarea" },
       { key: "what_it_measures", label: "What It Measures", type: "textarea" },
-      { key: "normal_range", label: "Normal Range", type: "text" },
+      { key: "normal_range", label: "Normal Range", type: "textarea" },
       { key: "low_interpretation", label: "Low Interpretation", type: "textarea" },
       { key: "high_interpretation", label: "High Interpretation", type: "textarea" },
       { key: "collection_type", label: "Collection Type", type: "text" },
@@ -110,7 +110,7 @@ export const ENTITY_CONFIGS: EntityConfig[] = [
     hex: "#272727",
     fields: [
       { key: "description", label: "Description", type: "textarea" },
-      { key: "normal_range", label: "Normal Range", type: "text" },
+      { key: "normal_range", label: "Normal Range", type: "textarea" },
       { key: "low_interpretation", label: "Low Interpretation", type: "textarea" },
       { key: "high_interpretation", label: "High Interpretation", type: "textarea" },
       { key: "notes", label: "Notes", type: "textarea" },
@@ -143,7 +143,7 @@ export const ENTITY_CONFIGS: EntityConfig[] = [
       { key: "role", label: "Role / Function", type: "textarea" },
       { key: "food_sources", label: "Food Sources", type: "textarea" },
       { key: "deficiency_signs", label: "Deficiency Signs", type: "textarea" },
-      { key: "normal_range", label: "Normal Range", type: "text" },
+      { key: "normal_range", label: "Normal Range", type: "textarea" },
       { key: "dosage", label: "Supplemental Dosage", type: "text" },
       { key: "notes", label: "Notes", type: "textarea" },
     ],
