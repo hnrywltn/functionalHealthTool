@@ -178,6 +178,22 @@ export const ENTITY_CONFIGS: EntityConfig[] = [
       { key: "notes", label: "Notes", type: "textarea" },
     ],
   },
+  {
+    type: "anatomy_physiology",
+    label: "Anatomy & Physiology",
+    labelPlural: "Anatomy & Physiology",
+    color: "bg-[#8B6FAE]",
+    textColor: "text-[#FEFEFA]",
+    hex: "#8B6FAE",
+    fields: [
+      { key: "description", label: "Description", type: "textarea" },
+      { key: "body_system", label: "Body System", type: "text" },
+      { key: "structures", label: "Structures", type: "textarea" },
+      { key: "function", label: "Function", type: "textarea" },
+      { key: "clinical_relevance", label: "Clinical Relevance", type: "textarea" },
+      { key: "notes", label: "Notes", type: "textarea" },
+    ],
+  },
 ];
 
 export const ENTITY_TYPES = ENTITY_CONFIGS.map((e) => e.type);
