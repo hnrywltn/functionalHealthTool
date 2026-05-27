@@ -68,8 +68,26 @@ async function migrate() {
       )
     `);
 
+    // Rename labs → lab_tests (idempotent)
     await client.query(`
-      CREATE TABLE IF NOT EXISTS labs (
+      DO $$ BEGIN
+        IF EXISTS (
+          SELECT FROM information_schema.tables
+          WHERE table_schema = 'public' AND table_name = 'labs'
+        ) THEN
+          ALTER TABLE labs RENAME TO lab_tests;
+        END IF;
+      END $$
+    `);
+
+    // Update entity type strings in join tables after rename
+    await client.query(`UPDATE entity_relationships SET entity_type_a = 'lab_tests' WHERE entity_type_a = 'labs'`);
+    await client.query(`UPDATE entity_relationships SET entity_type_b = 'lab_tests' WHERE entity_type_b = 'labs'`);
+    await client.query(`UPDATE entity_tags SET entity_type = 'lab_tests' WHERE entity_type = 'labs'`);
+    await client.query(`UPDATE entity_attachments SET entity_type = 'lab_tests' WHERE entity_type = 'labs'`);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS lab_tests (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         name TEXT NOT NULL,
         description TEXT,
@@ -78,34 +96,26 @@ async function migrate() {
         low_interpretation TEXT,
         high_interpretation TEXT,
         collection_type TEXT,
-        lab_company TEXT,
-        lab_company_url TEXT,
-        instructions_url TEXT,
-        sample_report_url TEXT,
-        cost TEXT,
-        turnaround_time TEXT,
-        indications TEXT,
-        lab_requisition_url TEXT,
         notes TEXT,
         created_at TIMESTAMPTZ DEFAULT NOW(),
         updated_at TIMESTAMPTZ DEFAULT NOW()
       )
     `);
 
-    // Add new labs columns to existing installs
-    for (const col of [
-      "lab_company TEXT",
-      "lab_company_url TEXT",
-      "instructions_url TEXT",
-      "sample_report_url TEXT",
-      "cost TEXT",
-      "turnaround_time TEXT",
-      "indications TEXT",
-      "lab_requisition_url TEXT",
-    ]) {
-      const [name, type] = col.split(" ");
-      await client.query(`ALTER TABLE labs ADD COLUMN IF NOT EXISTS ${name} ${type}`);
-    }
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS laboratories (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        name TEXT NOT NULL,
+        description TEXT,
+        website TEXT,
+        phone TEXT,
+        address TEXT,
+        specialties TEXT,
+        notes TEXT,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `);
 
     await client.query(`ALTER TABLE diagnoses ADD COLUMN IF NOT EXISTS icd10_codes TEXT[]`);
 

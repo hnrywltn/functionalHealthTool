@@ -218,11 +218,11 @@ async function seed() {
       { a_type: "supplements", a_id: suppIds["Magnesium Glycinate"], b_type: "symptoms", b_id: symIds["Anxiety"] },
       { a_type: "supplements", a_id: suppIds["Magnesium Glycinate"], b_type: "symptoms", b_id: symIds["Insomnia"] },
       { a_type: "supplements", a_id: suppIds["Magnesium Glycinate"], b_type: "symptoms", b_id: symIds["Muscle Cramps"] },
-      { a_type: "supplements", a_id: suppIds["Magnesium Glycinate"], b_type: "labs", b_id: labIds["RBC Magnesium"] },
+      { a_type: "supplements", a_id: suppIds["Magnesium Glycinate"], b_type: "lab_tests", b_id: labIds["RBC Magnesium"] },
       { a_type: "supplements", a_id: suppIds["Magnesium Glycinate"], b_type: "protocols", b_id: protoIds["Anxiety & Sleep Reset"] },
       // Vitamin D ↔ labs/symptoms
       { a_type: "supplements", a_id: suppIds["Vitamin D3 + K2"], b_type: "symptoms", b_id: symIds["Fatigue"] },
-      { a_type: "supplements", a_id: suppIds["Vitamin D3 + K2"], b_type: "labs", b_id: labIds["25-OH Vitamin D"] },
+      { a_type: "supplements", a_id: suppIds["Vitamin D3 + K2"], b_type: "lab_tests", b_id: labIds["25-OH Vitamin D"] },
       { a_type: "supplements", a_id: suppIds["Vitamin D3 + K2"], b_type: "protocols", b_id: protoIds["Vitamin D Repletion Protocol"] },
       // L-Theanine ↔ GABA (related supplements)
       { a_type: "supplements", a_id: suppIds["L-Theanine"], b_type: "supplements", b_id: suppIds["GABA"] },
@@ -230,7 +230,7 @@ async function seed() {
       { a_type: "supplements", a_id: suppIds["L-Theanine"], b_type: "symptoms", b_id: symIds["Brain Fog"] },
       // Zinc ↔ diagnoses/labs
       { a_type: "supplements", a_id: suppIds["Zinc Picolinate"], b_type: "diagnoses", b_id: dxIds["Pyroluria"] },
-      { a_type: "supplements", a_id: suppIds["Zinc Picolinate"], b_type: "labs", b_id: labIds["Urine Kryptopyrrole"] },
+      { a_type: "supplements", a_id: suppIds["Zinc Picolinate"], b_type: "lab_tests", b_id: labIds["Urine Kryptopyrrole"] },
       { a_type: "supplements", a_id: suppIds["Zinc Picolinate"], b_type: "protocols", b_id: protoIds["Pyroluria Treatment Protocol"] },
       // Symptoms ↔ diagnoses
       { a_type: "symptoms", a_id: symIds["Anxiety"], b_type: "diagnoses", b_id: dxIds["Generalized Anxiety Disorder"] },
@@ -240,8 +240,8 @@ async function seed() {
       { a_type: "symptoms", a_id: symIds["Brain Fog"], b_type: "diagnoses", b_id: dxIds["Leaky Gut Syndrome"] },
       { a_type: "symptoms", a_id: symIds["Brain Fog"], b_type: "diagnoses", b_id: dxIds["Hypothyroidism"] },
       // Labs ↔ diagnoses
-      { a_type: "labs", a_id: labIds["Thyroid Panel (Full)"], b_type: "diagnoses", b_id: dxIds["Hypothyroidism"] },
-      { a_type: "labs", a_id: labIds["Urine Kryptopyrrole"], b_type: "diagnoses", b_id: dxIds["Pyroluria"] },
+      { a_type: "lab_tests", a_id: labIds["Thyroid Panel (Full)"], b_type: "diagnoses", b_id: dxIds["Hypothyroidism"] },
+      { a_type: "lab_tests", a_id: labIds["Urine Kryptopyrrole"], b_type: "diagnoses", b_id: dxIds["Pyroluria"] },
       // Markers ↔ symptoms/diagnoses
       { a_type: "biochemical_markers", a_id: markerIds["Cortisol (Salivary)"], b_type: "symptoms", b_id: symIds["Anxiety"] },
       { a_type: "biochemical_markers", a_id: markerIds["Cortisol (Salivary)"], b_type: "symptoms", b_id: symIds["Insomnia"] },
@@ -256,7 +256,7 @@ async function seed() {
       // Protocols ↔ diagnoses/labs
       { a_type: "protocols", a_id: protoIds["Anxiety & Sleep Reset"], b_type: "diagnoses", b_id: dxIds["Generalized Anxiety Disorder"] },
       { a_type: "protocols", a_id: protoIds["Thyroid Optimization Protocol"], b_type: "diagnoses", b_id: dxIds["Hypothyroidism"] },
-      { a_type: "protocols", a_id: protoIds["Thyroid Optimization Protocol"], b_type: "labs", b_id: labIds["Thyroid Panel (Full)"] },
+      { a_type: "protocols", a_id: protoIds["Thyroid Optimization Protocol"], b_type: "lab_tests", b_id: labIds["Thyroid Panel (Full)"] },
       { a_type: "protocols", a_id: protoIds["Leaky Gut Repair (4R Protocol)"], b_type: "diagnoses", b_id: dxIds["Leaky Gut Syndrome"] },
       { a_type: "protocols", a_id: protoIds["Pyroluria Treatment Protocol"], b_type: "diagnoses", b_id: dxIds["Pyroluria"] },
     ];

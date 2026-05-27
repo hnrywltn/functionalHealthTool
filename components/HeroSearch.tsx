@@ -81,7 +81,7 @@ export default function HeroSearch() {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search supplements, symptoms, labs…"
+            placeholder="Search supplements, symptoms, lab tests…"
             className="w-full pl-11 pr-4 py-4 rounded-xl border-2 border-[#FE6959] bg-white text-[var(--color-text)] placeholder-[var(--color-muted)] text-sm focus:outline-none focus:ring-2 focus:ring-[#FE6959]/30 shadow-sm"
           />
           {searching && (
