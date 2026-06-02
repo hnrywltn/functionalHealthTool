@@ -163,6 +163,21 @@ export const ENTITY_CONFIGS: EntityConfig[] = [
     ],
   },
   {
+    type: "products",
+    label: "Product",
+    labelPlural: "Products",
+    color: "bg-[#C87941]",
+    textColor: "text-[#FEFEFA]",
+    hex: "#C87941",
+    fields: [
+      { key: "description", label: "Description", type: "textarea" },
+      { key: "brand", label: "Brand", type: "text" },
+      { key: "product_type", label: "Product Type", type: "text" },
+      { key: "where_to_buy", label: "Where to Buy", type: "text" },
+      { key: "notes", label: "Notes", type: "textarea" },
+    ],
+  },
+  {
     type: "protocols",
     label: "Protocol",
     labelPlural: "Protocols",
