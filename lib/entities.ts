@@ -146,6 +146,23 @@ export const ENTITY_CONFIGS: EntityConfig[] = [
     ],
   },
   {
+    type: "nutrition",
+    label: "Nutrition",
+    labelPlural: "Nutrition",
+    color: "bg-[#6B9E6B]",
+    textColor: "text-[#FEFEFA]",
+    hex: "#6B9E6B",
+    fields: [
+      { key: "description", label: "Description", type: "textarea" },
+      { key: "nutrient_class", label: "Nutrient Class", type: "text" },
+      { key: "food_sources", label: "Food Sources", type: "textarea" },
+      { key: "functions", label: "Functions", type: "textarea" },
+      { key: "deficiency_signs", label: "Deficiency Signs", type: "textarea" },
+      { key: "excess_signs", label: "Excess / Toxicity Signs", type: "textarea" },
+      { key: "notes", label: "Notes", type: "textarea" },
+    ],
+  },
+  {
     type: "protocols",
     label: "Protocol",
     labelPlural: "Protocols",
