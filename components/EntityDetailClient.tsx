@@ -448,20 +448,12 @@ export default function EntityDetailClient({ config, record, relationships, init
             <dt className="text-sm font-medium text-[var(--color-muted)] pt-0.5">{field.label}</dt>
             <dd className="col-span-2">
               {editing ? (
-                field.type !== "text" ? (
-                  <AutoTextarea
-                    className="w-full text-sm text-[var(--color-text)] bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg px-3 py-2 resize-none outline-none focus:border-[var(--color-sidebar)] transition-colors min-h-[80px] overflow-hidden"
-                    value={form[field.key] ?? ""}
-                    onChange={(e) => setForm((f) => ({ ...f, [field.key]: e.target.value }))}
-                    placeholder={field.type === "array" ? "comma separated" : ""}
-                  />
-                ) : (
-                  <input
-                    className="w-full text-sm text-[var(--color-text)] bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg px-3 py-2 outline-none focus:border-[var(--color-sidebar)] transition-colors"
-                    value={form[field.key] ?? ""}
-                    onChange={(e) => setForm((f) => ({ ...f, [field.key]: e.target.value }))}
-                  />
-                )
+                <AutoTextarea
+                  className="w-full text-sm text-[var(--color-text)] bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg px-3 py-2 resize-none outline-none focus:border-[var(--color-sidebar)] transition-colors min-h-[80px] overflow-hidden"
+                  value={form[field.key] ?? ""}
+                  onChange={(e) => setForm((f) => ({ ...f, [field.key]: e.target.value }))}
+                  placeholder={field.type === "array" ? "comma separated" : ""}
+                />
               ) : field.key === "website" && form[field.key] ? (
                 <a
                   href={form[field.key].startsWith("http") ? form[field.key] : `https://${form[field.key]}`}
