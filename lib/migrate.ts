@@ -117,6 +117,8 @@ async function migrate() {
       )
     `);
 
+    await client.query(`ALTER TABLE laboratories ADD COLUMN IF NOT EXISTS email TEXT`);
+
     await client.query(`ALTER TABLE diagnoses ADD COLUMN IF NOT EXISTS icd10_codes TEXT[]`);
 
     await client.query(`
