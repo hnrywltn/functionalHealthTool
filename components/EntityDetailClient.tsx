@@ -17,8 +17,10 @@ function AutoTextarea({ className, value, onChange, placeholder }: {
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    const scrollY = window.scrollY;
     el.style.height = "auto";
     el.style.height = el.scrollHeight + "px";
+    window.scrollTo(0, scrollY);
   }, [value]);
   return (
     <textarea
