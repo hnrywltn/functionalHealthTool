@@ -121,6 +121,18 @@ async function migrate() {
 
     await client.query(`ALTER TABLE laboratories ADD COLUMN IF NOT EXISTS email TEXT`);
 
+    for (const col of [
+      "indications TEXT",
+      "ranges TEXT",
+      "source TEXT",
+      "cost TEXT",
+      "instructions TEXT",
+      "faqs TEXT",
+    ]) {
+      const [name, ...rest] = col.split(" ");
+      await client.query(`ALTER TABLE lab_tests ADD COLUMN IF NOT EXISTS ${name} ${rest.join(" ")}`);
+    }
+
     await client.query(`ALTER TABLE diagnoses ADD COLUMN IF NOT EXISTS icd10_codes TEXT[]`);
 
     await client.query(`

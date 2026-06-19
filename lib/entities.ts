@@ -1,7 +1,8 @@
 export type FieldDef = {
   key: string;
   label: string;
-  type: "text" | "textarea" | "array";
+  type: "text" | "textarea" | "array" | "entity_source";
+  sourceEntityTypes?: string[];
 };
 
 export type EntityConfig = {
@@ -102,10 +103,13 @@ export const ENTITY_CONFIGS: EntityConfig[] = [
     fields: [
       { key: "description", label: "Description", type: "textarea" },
       { key: "what_it_measures", label: "What It Measures", type: "textarea" },
-      { key: "normal_range", label: "Normal Range", type: "textarea" },
-      { key: "low_interpretation", label: "Low Interpretation", type: "textarea" },
-      { key: "high_interpretation", label: "High Interpretation", type: "textarea" },
+      { key: "indications", label: "Indications", type: "textarea" },
+      { key: "ranges", label: "Ranges", type: "textarea" },
+      { key: "source", label: "Source", type: "entity_source", sourceEntityTypes: ["laboratories", "vendors"] },
       { key: "collection_type", label: "Collection Type", type: "text" },
+      { key: "cost", label: "Cost", type: "text" },
+      { key: "instructions", label: "Instructions", type: "textarea" },
+      { key: "faqs", label: "FAQs", type: "textarea" },
       { key: "notes", label: "Notes", type: "textarea" },
     ],
   },

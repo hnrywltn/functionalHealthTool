@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { EntityConfig, FieldDef } from "@/lib/entities";
 import PrintModal from "@/components/PrintModal";
+import SourceModal, { parseSourceValue, serializeSourceValue, SourceValue } from "@/components/SourceModal";
 
 function AutoTextarea({ className, value, onChange, placeholder }: {
   className?: string;
@@ -91,6 +92,19 @@ export default function EntityDetailClient({ config, record, relationships, init
   const [allAttachments, setAllAttachments] = useState<Attachment[]>([]);
   const attachFileRef = useRef<HTMLInputElement>(null);
 
+  const [sourceModalField, setSourceModalField] = useState<FieldDef | null>(null);
+  const [sourceValues, setSourceValues] = useState<Record<string, SourceValue | null>>(() => {
+    const out: Record<string, SourceValue | null> = {};
+    if (record) {
+      for (const f of config.fields) {
+        if (f.type === "entity_source") {
+          out[f.key] = parseSourceValue(String(record[f.key] ?? ""));
+        }
+      }
+    }
+    return out;
+  });
+
   async function handleSave() {
     setSaving(true);
     const body: Record<string, unknown> = { name: form.name };
@@ -99,6 +113,8 @@ export default function EntityDetailClient({ config, record, relationships, init
         body[f.key] = form[f.key]
           ? form[f.key].split(",").map((s) => s.trim()).filter(Boolean)
           : [];
+      } else if (f.type === "entity_source") {
+        body[f.key] = serializeSourceValue(sourceValues[f.key] ?? null);
       } else {
         body[f.key] = form[f.key] || null;
       }
@@ -137,6 +153,8 @@ export default function EntityDetailClient({ config, record, relationships, init
         body[f.key] = form[f.key]
           ? form[f.key].split(",").map((s) => s.trim()).filter(Boolean)
           : [];
+      } else if (f.type === "entity_source") {
+        body[f.key] = serializeSourceValue(sourceValues[f.key] ?? null);
       } else {
         body[f.key] = form[f.key] || null;
       }
@@ -447,7 +465,37 @@ export default function EntityDetailClient({ config, record, relationships, init
           <div key={field.key} className="px-5 py-4 grid grid-cols-3 gap-4">
             <dt className="text-sm font-medium text-[var(--color-muted)] pt-0.5">{field.label}</dt>
             <dd className="col-span-2">
-              {editing ? (
+              {field.type === "entity_source" ? (
+                editing ? (
+                  <button
+                    onClick={() => setSourceModalField(field)}
+                    className="w-full text-left text-sm bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg px-3 py-2 hover:border-[var(--color-sidebar)] transition-colors min-h-[40px]"
+                  >
+                    {(() => {
+                      const sv = sourceValues[field.key];
+                      if (!sv) return <span className="text-[var(--color-muted)]">Click to set source…</span>;
+                      if (sv.type === "entity") return <span className="text-[var(--color-text)]">{sv.name}</span>;
+                      return <span className="text-[var(--color-text)]">{sv.text}</span>;
+                    })()}
+                  </button>
+                ) : (
+                  (() => {
+                    const sv = sourceValues[field.key];
+                    if (!sv) return <span className="text-sm text-[var(--color-muted)]">—</span>;
+                    if (sv.type === "entity") {
+                      return (
+                        <Link
+                          href={`/${sv.entity_type}/${sv.entity_id}`}
+                          className="text-sm text-[var(--color-sidebar)] hover:underline font-medium"
+                        >
+                          {sv.name} →
+                        </Link>
+                      );
+                    }
+                    return <p className="text-sm text-[var(--color-text)] whitespace-pre-wrap">{sv.text}</p>;
+                  })()
+                )
+              ) : editing ? (
                 <AutoTextarea
                   className="w-full text-sm text-[var(--color-text)] bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg px-3 py-2 resize-none outline-none focus:border-[var(--color-sidebar)] transition-colors min-h-[80px] overflow-hidden"
                   value={form[field.key] ?? ""}
@@ -760,6 +808,18 @@ export default function EntityDetailClient({ config, record, relationships, init
             )}
           </div>
         </section>
+      )}
+
+      {/* Source modal */}
+      {sourceModalField && (
+        <SourceModal
+          label={sourceModalField.label}
+          sourceEntityTypes={sourceModalField.sourceEntityTypes ?? []}
+          allConfigs={allConfigs}
+          initialValue={sourceValues[sourceModalField.key] ?? null}
+          onSave={(val) => setSourceValues((prev) => ({ ...prev, [sourceModalField.key]: val }))}
+          onClose={() => setSourceModalField(null)}
+        />
       )}
 
       {/* Print modal */}
