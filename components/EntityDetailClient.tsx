@@ -92,6 +92,8 @@ export default function EntityDetailClient({ config, record, relationships, init
   const [allAttachments, setAllAttachments] = useState<Attachment[]>([]);
   const attachFileRef = useRef<HTMLInputElement>(null);
 
+  const [dragging, setDragging] = useState(false);
+
   const [sourceModalField, setSourceModalField] = useState<FieldDef | null>(null);
   const [sourceValues, setSourceValues] = useState<Record<string, SourceValue | null>>(() => {
     const out: Record<string, SourceValue | null> = {};
@@ -277,10 +279,7 @@ export default function EntityDetailClient({ config, record, relationships, init
     return "other";
   }
 
-  async function handleAttachFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    e.target.value = "";
+  async function uploadFile(file: File) {
     setAttachUploading(true);
     const fd = new FormData();
     fd.append("file", file);
@@ -289,6 +288,22 @@ export default function EntityDetailClient({ config, record, relationships, init
     setAttachPending({ key, file_type: deriveFileType(file.name) });
     setAttachPendingLabel(file.name);
     setAttachUploading(false);
+  }
+
+  async function handleAttachFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = "";
+    uploadFile(file);
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setDragging(false);
+    if (attachUploading || attachPending) return;
+    const file = e.dataTransfer.files?.[0];
+    if (!file) return;
+    uploadFile(file);
   }
 
   async function saveAttachPending() {
@@ -770,16 +785,30 @@ export default function EntityDetailClient({ config, record, relationships, init
               </div>
             )}
 
-            {!isNew && (
-              <div className="flex gap-2">
+            {/* Drop zone */}
+            {!isNew && !attachPending && (
+              <div
+                onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+                onDragLeave={() => setDragging(false)}
+                onDrop={handleDrop}
+                className={`mb-3 flex flex-col items-center justify-center rounded-lg border-2 border-dashed px-4 py-6 transition-colors ${dragging ? "border-[var(--color-sidebar)] bg-[var(--color-sidebar)]/5" : "border-[var(--color-border)]"}`}
+              >
+                <p className="text-sm text-[var(--color-muted)] mb-2">
+                  {attachUploading ? "Uploading…" : "Drag & drop a file here"}
+                </p>
                 <input ref={attachFileRef} type="file" accept=".pdf,.png,.jpg,.jpeg,.webp" className="hidden" onChange={handleAttachFileSelect} />
                 <button
                   onClick={() => attachFileRef.current?.click()}
-                  disabled={attachUploading || !!attachPending}
+                  disabled={attachUploading}
                   className="px-3 py-1.5 text-xs border border-[var(--color-border)] rounded-lg hover:border-[var(--color-accent-hover)] disabled:opacity-50 transition-colors"
                 >
-                  {attachUploading ? "Uploading…" : "+ Upload file"}
+                  or choose file
                 </button>
+              </div>
+            )}
+
+            {!isNew && (
+              <div className="flex gap-2">
                 <div className="relative flex-1">
                   <input
                     className="w-full text-xs border border-[var(--color-border)] rounded-lg px-3 py-1.5 outline-none focus:border-[var(--color-sidebar)] transition-colors"
