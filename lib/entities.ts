@@ -212,6 +212,8 @@ export const ENTITY_CONFIGS: EntityConfig[] = [
       { key: "prn_usage", label: "PRN Usage", type: "textarea" },
       { key: "adverse_effects", label: "Adverse Effects", type: "textarea" },
       { key: "contraindications", label: "Contraindications", type: "textarea" },
+      { key: "ingredients", label: "Ingredients", type: "textarea" },
+      { key: "source", label: "Source (Where to Order)", type: "textarea" },
       { key: "testing", label: "Testing", type: "textarea" },
       { key: "notes", label: "Notes", type: "textarea" },
     ],

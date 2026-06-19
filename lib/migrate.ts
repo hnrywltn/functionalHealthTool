@@ -37,6 +37,8 @@ async function migrate() {
     // Add new supplements columns to existing installs
     for (const col of [
       "indications TEXT",
+      "ingredients TEXT",
+      "source TEXT",
       "vendors_pharmacies TEXT[]",
       "documents TEXT[]",
     ]) {
