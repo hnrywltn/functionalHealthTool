@@ -384,6 +384,25 @@ async function migrate() {
     await client.query(`ALTER TABLE ce ADD COLUMN IF NOT EXISTS description TEXT`);
 
     await client.query(`
+      CREATE TABLE IF NOT EXISTS equipment (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        name TEXT NOT NULL,
+        classification TEXT,
+        description TEXT,
+        brand TEXT,
+        source TEXT,
+        instructions TEXT,
+        accessories TEXT[],
+        maintenance TEXT,
+        contact TEXT,
+        cost TEXT,
+        notes TEXT,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `);
+
+    await client.query(`
       CREATE TABLE IF NOT EXISTS entity_relationships (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         entity_type_a TEXT NOT NULL,
