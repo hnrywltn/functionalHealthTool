@@ -133,6 +133,21 @@ export const ENTITY_CONFIGS: EntityConfig[] = [
     ],
   },
   {
+    type: "forms",
+    label: "Form",
+    labelPlural: "Forms",
+    color: "bg-[#7A6C5D]",
+    textColor: "text-[#FEFEFA]",
+    hex: "#7A6C5D",
+    fields: [
+      { key: "form_type", label: "Type", type: "text" },
+      { key: "purpose", label: "Purpose", type: "textarea" },
+      { key: "policy_and_procedure", label: "Policy and Procedure", type: "textarea" },
+      { key: "review_date", label: "Review Date", type: "text" },
+      { key: "notes", label: "Notes", type: "textarea" },
+    ],
+  },
+  {
     type: "genetics",
     label: "Genetic Marker",
     labelPlural: "Genetics",
