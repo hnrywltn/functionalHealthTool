@@ -403,6 +403,24 @@ async function migrate() {
     `);
 
     await client.query(`
+      CREATE TABLE IF NOT EXISTS affiliations (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        name TEXT NOT NULL,
+        description TEXT,
+        clinical_identifiers TEXT,
+        review_date TEXT,
+        cost TEXT,
+        source TEXT,
+        benefits TEXT,
+        links TEXT,
+        education TEXT,
+        notes TEXT,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `);
+
+    await client.query(`
       CREATE TABLE IF NOT EXISTS entity_relationships (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         entity_type_a TEXT NOT NULL,

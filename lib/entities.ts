@@ -17,6 +17,25 @@ export type EntityConfig = {
 
 export const ENTITY_CONFIGS: EntityConfig[] = [
   {
+    type: "affiliations",
+    label: "Affiliation",
+    labelPlural: "Affiliations",
+    color: "bg-[#8E5B6E]",
+    textColor: "text-[#FEFEFA]",
+    hex: "#8E5B6E",
+    fields: [
+      { key: "description", label: "Description", type: "textarea" },
+      { key: "clinical_identifiers", label: "Clinical Identifiers", type: "textarea" },
+      { key: "review_date", label: "Review Date", type: "text" },
+      { key: "cost", label: "Cost", type: "text" },
+      { key: "source", label: "Source", type: "entity_source", sourceEntityTypes: ["vendors"] },
+      { key: "benefits", label: "Benefits", type: "textarea" },
+      { key: "links", label: "Links", type: "textarea" },
+      { key: "education", label: "Education", type: "textarea" },
+      { key: "notes", label: "Notes", type: "textarea" },
+    ],
+  },
+  {
     type: "amino_acids",
     label: "Amino Acid",
     labelPlural: "Amino Acids",
