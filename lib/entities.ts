@@ -69,6 +69,21 @@ export const ENTITY_CONFIGS: EntityConfig[] = [
     ],
   },
   {
+    type: "assessments",
+    label: "Assessment",
+    labelPlural: "Assessments",
+    color: "bg-[#4E7A8C]",
+    textColor: "text-[#FEFEFA]",
+    hex: "#4E7A8C",
+    fields: [
+      { key: "assessment_type", label: "Type", type: "text" },
+      { key: "purpose", label: "Purpose", type: "textarea" },
+      { key: "links", label: "Links", type: "textarea" },
+      { key: "citations", label: "Citations", type: "textarea" },
+      { key: "notes", label: "Notes", type: "textarea" },
+    ],
+  },
+  {
     type: "biochemical_markers",
     label: "Biomarker",
     labelPlural: "Biomarkers",
