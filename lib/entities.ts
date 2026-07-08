@@ -65,6 +65,20 @@ export const ENTITY_CONFIGS: EntityConfig[] = [
     ],
   },
   {
+    type: "ce",
+    label: "CE",
+    labelPlural: "CE",
+    color: "bg-[#D4A24C]",
+    textColor: "text-[#272727]",
+    hex: "#D4A24C",
+    fields: [
+      { key: "description", label: "Description", type: "textarea" },
+      { key: "topic", label: "Topic", type: "text" },
+      { key: "source", label: "Source", type: "entity_source", sourceEntityTypes: ["laboratories", "vendors"] },
+      { key: "notes", label: "Notes", type: "textarea" },
+    ],
+  },
+  {
     type: "diagnoses",
     label: "Diagnosis",
     labelPlural: "Diagnoses",
