@@ -134,6 +134,8 @@ async function migrate() {
     }
 
     await client.query(`ALTER TABLE diagnoses ADD COLUMN IF NOT EXISTS icd10_codes TEXT[]`);
+    await client.query(`ALTER TABLE diagnoses ADD COLUMN IF NOT EXISTS differential_diagnosis TEXT`);
+    await client.query(`ALTER TABLE diagnoses ADD COLUMN IF NOT EXISTS dsm_v TEXT`);
 
     await client.query(`
       CREATE TABLE IF NOT EXISTS medications (

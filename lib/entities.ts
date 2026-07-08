@@ -74,6 +74,8 @@ export const ENTITY_CONFIGS: EntityConfig[] = [
     fields: [
       { key: "description", label: "Description", type: "textarea" },
       { key: "icd10_codes", label: "ICD-10 Code(s)", type: "array" },
+      { key: "differential_diagnosis", label: "Differential Diagnosis", type: "textarea" },
+      { key: "dsm_v", label: "DSM-V", type: "textarea" },
       { key: "notes", label: "Notes", type: "textarea" },
     ],
   },
