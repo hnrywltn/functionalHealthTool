@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
 import {
   DndContext,
   closestCenter,
@@ -51,14 +50,6 @@ type Props = {
   allConfigs: EntityConfig[];
   onClose: () => void;
 };
-
-function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
 
 function GripIcon() {
   return (
@@ -234,55 +225,55 @@ export default function PrintModal({
     setItems((prev) => prev.map((i) => ({ ...i, checked: next })));
   }
 
-  async function handleDownloadPdf() {
+  function handleDownloadPdf() {
     const checkedItems = items.filter((i) => i.checked);
 
-    const sectionsHtml = checkedItems
-      .map((item, idx) => {
-        let contentHtml = "";
+    type Section = {
+      label: string;
+      lines: string[];
+      subGroups?: { label: string; text: string }[];
+      note?: string;
+    };
 
-        if (item.id === "connections") {
-          const grouped = allConfigs
-            .filter((c) => c.type !== config.type && c.type !== "vendors")
-            .map((c) => ({
-              label: c.labelPlural,
-              rels: nonVendorRels.filter((r) => r.entity_type === c.type),
-            }))
-            .filter((g) => g.rels.length > 0);
+    const sections: Section[] = [];
 
-          if (grouped.length === 0 && !item.note.trim()) return "";
+    for (const item of checkedItems) {
+      if (item.id === "connections") {
+        const grouped = allConfigs
+          .filter((c) => c.type !== config.type && c.type !== "vendors")
+          .map((c) => ({
+            label: c.labelPlural,
+            rels: nonVendorRels.filter((r) => r.entity_type === c.type),
+          }))
+          .filter((g) => g.rels.length > 0);
 
-          contentHtml = grouped
-            .map(
-              (g) => `
-            <div class="conn-group">
-              <div class="conn-label">${escapeHtml(g.label)}</div>
-              <div class="conn-items">${g.rels.map((r) => escapeHtml(r.name)).join(" · ")}</div>
-            </div>`
-            )
-            .join("");
-        } else if (item.id === "tags") {
-          if (tags.length === 0 && !item.note.trim()) return "";
-          contentHtml = `<div class="tags">${tags
-            .map((t) => `<span class="tag">#${escapeHtml(t.name)}</span>`)
-            .join("")}</div>`;
-        } else {
-          if (!item.content && !item.note.trim()) return "";
-          contentHtml = item.content
-            ? `<div class="content">${escapeHtml(item.content).replace(/\n/g, "<br>")}</div>`
-            : "";
-        }
+        if (grouped.length === 0 && !item.note.trim()) continue;
 
-        const noteHtml = item.note.trim()
-          ? `<div class="note">${escapeHtml(item.note.trim()).replace(/\n/g, "<br>")}</div>`
-          : "";
-
-        if (!contentHtml && !noteHtml) return "";
-
-        const divider = idx > 0 ? '<div class="divider"></div>' : "";
-        return `${divider}<div class="section"><div class="section-label">${escapeHtml(item.label)}</div>${contentHtml}${noteHtml}</div>`;
-      })
-      .join("");
+        sections.push({
+          label: item.label,
+          lines: [],
+          subGroups: grouped.map((g) => ({
+            label: g.label,
+            text: g.rels.map((r) => r.name).join(" · "),
+          })),
+          note: item.note.trim() || undefined,
+        });
+      } else if (item.id === "tags") {
+        if (tags.length === 0 && !item.note.trim()) continue;
+        sections.push({
+          label: item.label,
+          lines: [tags.map((t) => `#${t.name}`).join("   ")],
+          note: item.note.trim() || undefined,
+        });
+      } else {
+        if (!item.content && !item.note.trim()) continue;
+        sections.push({
+          label: item.label,
+          lines: item.content ? item.content.split("\n") : [],
+          note: item.note.trim() || undefined,
+        });
+      }
+    }
 
     const date = new Date().toLocaleDateString("en-US", {
       year: "numeric",
@@ -290,72 +281,81 @@ export default function PrintModal({
       day: "numeric",
     });
 
-    const container = document.createElement("div");
-    container.style.position = "fixed";
-    container.style.top = "0";
-    container.style.left = "-9999px";
-    container.innerHTML = `
-<style>
-.pdf-export * { box-sizing: border-box; margin: 0; padding: 0; }
-.pdf-export {
-  width: 680px;
-  padding: 40px 24px;
-  background: #fff;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  color: #111;
-  line-height: 1.6;
-}
-.pdf-export .header { margin-bottom: 28px; padding-bottom: 16px; border-bottom: 2px solid #e0e0e0; }
-.pdf-export .record-name { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; }
-.pdf-export .entity-type { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: #888; }
-.pdf-export .section-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: #888; margin-bottom: 6px; }
-.pdf-export .content { font-size: 14px; white-space: pre-wrap; color: #222; }
-.pdf-export .conn-group { margin-bottom: 8px; }
-.pdf-export .conn-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #aaa; margin-bottom: 3px; }
-.pdf-export .conn-items { font-size: 13px; color: #333; }
-.pdf-export .tags { display: flex; flex-wrap: wrap; gap: 6px; }
-.pdf-export .tag { font-size: 12px; padding: 2px 10px; background: #f0f0f0; border-radius: 999px; color: #555; }
-.pdf-export .divider { border-top: 1px solid #e5e5e5; margin: 20px 0; }
-.pdf-export .note { margin-top: 10px; font-size: 13px; color: #555; border-left: 3px solid #ddd; padding-left: 12px; white-space: pre-wrap; }
-.pdf-export .footer { margin-top: 40px; padding-top: 12px; border-top: 1px solid #eee; font-size: 11px; color: #bbb; }
-</style>
-<div class="pdf-export">
-  <div class="header">
-    <div class="record-name">${escapeHtml(recordName)}</div>
-    <div class="entity-type">${escapeHtml(config.label)}</div>
-  </div>
-  ${sectionsHtml}
-  <div class="footer">Health Reference · ${date}</div>
-</div>`;
-    document.body.appendChild(container);
+    const pdf = new jsPDF({ unit: "pt", format: "letter" });
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 48;
+    const contentWidth = pageWidth - margin * 2;
+    let y = margin;
 
-    try {
-      const canvas = await html2canvas(container, { scale: 2, backgroundColor: "#ffffff" });
-
-      const pdf = new jsPDF({ unit: "pt", format: "letter" });
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const imgWidth = pageWidth;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      const imgData = canvas.toDataURL("image/png");
-
-      let heightLeft = imgHeight;
-      let position = 0;
-
-      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-
-      while (heightLeft > 0) {
-        position -= pageHeight;
+    function ensureSpace(height: number) {
+      if (y + height > pageHeight - margin) {
         pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+        y = margin;
+      }
+    }
+
+    function drawWrapped(
+      text: string,
+      size: number,
+      style: "normal" | "bold",
+      color: [number, number, number],
+      lineHeight: number,
+      gapAfter = 0
+    ) {
+      pdf.setFont("helvetica", style);
+      pdf.setFontSize(size);
+      pdf.setTextColor(color[0], color[1], color[2]);
+      const lines: string[] = pdf.splitTextToSize(text, contentWidth);
+      for (const line of lines) {
+        ensureSpace(lineHeight);
+        pdf.text(line, margin, y);
+        y += lineHeight;
+      }
+      y += gapAfter;
+    }
+
+    function drawDivider(color: [number, number, number], width: number, gapAfter: number) {
+      ensureSpace(gapAfter);
+      pdf.setDrawColor(color[0], color[1], color[2]);
+      pdf.setLineWidth(width);
+      pdf.line(margin, y, pageWidth - margin, y);
+      y += gapAfter;
+    }
+
+    drawWrapped(recordName, 20, "bold", [17, 17, 17], 24);
+    drawWrapped(config.label.toUpperCase(), 9, "bold", [136, 136, 136], 12, 8);
+    drawDivider([224, 224, 224], 1.2, 20);
+
+    sections.forEach((section, idx) => {
+      if (idx > 0) {
+        drawDivider([229, 229, 229], 0.75, 16);
       }
 
-      pdf.save(`${recordName}.pdf`);
-    } finally {
-      document.body.removeChild(container);
-    }
+      drawWrapped(section.label.toUpperCase(), 9, "bold", [136, 136, 136], 12, 4);
+
+      if (section.subGroups) {
+        section.subGroups.forEach((g) => {
+          drawWrapped(g.label.toUpperCase(), 8, "bold", [170, 170, 170], 11, 2);
+          drawWrapped(g.text, 11, "normal", [51, 51, 51], 15, 6);
+        });
+      } else if (section.lines.length > 0) {
+        section.lines.forEach((line) => {
+          drawWrapped(line || " ", 11, "normal", [34, 34, 34], 16);
+        });
+      }
+
+      if (section.note) {
+        y += 4;
+        drawWrapped(section.note, 10, "normal", [85, 85, 85], 14);
+      }
+    });
+
+    y += 20;
+    drawDivider([238, 238, 238], 0.75, 16);
+    drawWrapped(`Health Reference · ${date}`, 9, "normal", [187, 187, 187], 12);
+
+    pdf.save(`${recordName}.pdf`);
   }
 
   return (
