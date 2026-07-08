@@ -457,7 +457,7 @@ export default function EntityDetailClient({ config, record, relationships, init
                 onClick={() => setPrintOpen(true)}
                 className="px-4 py-1.5 text-sm border border-[var(--color-border)] rounded-lg hover:border-[var(--color-accent-hover)] transition-colors"
               >
-                Print
+                Download PDF
               </button>
               <button
                 onClick={handleDuplicate}

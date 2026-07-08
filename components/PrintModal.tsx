@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 import {
   DndContext,
   closestCenter,
@@ -232,7 +234,7 @@ export default function PrintModal({
     setItems((prev) => prev.map((i) => ({ ...i, checked: next })));
   }
 
-  function handlePrint() {
+  async function handleDownloadPdf() {
     const checkedItems = items.filter((i) => i.checked);
 
     const sectionsHtml = checkedItems
@@ -288,54 +290,72 @@ export default function PrintModal({
       day: "numeric",
     });
 
-    const html = `<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>${escapeHtml(recordName)}</title>
+    const container = document.createElement("div");
+    container.style.position = "fixed";
+    container.style.top = "0";
+    container.style.left = "-9999px";
+    container.innerHTML = `
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body {
+.pdf-export * { box-sizing: border-box; margin: 0; padding: 0; }
+.pdf-export {
+  width: 680px;
+  padding: 40px 24px;
+  background: #fff;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  max-width: 680px;
-  margin: 40px auto;
-  padding: 0 24px;
   color: #111;
   line-height: 1.6;
 }
-.header { margin-bottom: 28px; padding-bottom: 16px; border-bottom: 2px solid #e0e0e0; }
-.record-name { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; }
-.entity-type { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: #888; }
-.section { }
-.section-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: #888; margin-bottom: 6px; }
-.content { font-size: 14px; white-space: pre-wrap; color: #222; }
-.conn-group { margin-bottom: 8px; }
-.conn-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #aaa; margin-bottom: 3px; }
-.conn-items { font-size: 13px; color: #333; }
-.tags { display: flex; flex-wrap: wrap; gap: 6px; }
-.tag { font-size: 12px; padding: 2px 10px; background: #f0f0f0; border-radius: 999px; color: #555; }
-.divider { border-top: 1px solid #e5e5e5; margin: 20px 0; }
-.note { margin-top: 10px; font-size: 13px; color: #555; border-left: 3px solid #ddd; padding-left: 12px; white-space: pre-wrap; }
-.footer { margin-top: 40px; padding-top: 12px; border-top: 1px solid #eee; font-size: 11px; color: #bbb; }
-@media print { body { margin: 20px; } }
+.pdf-export .header { margin-bottom: 28px; padding-bottom: 16px; border-bottom: 2px solid #e0e0e0; }
+.pdf-export .record-name { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; }
+.pdf-export .entity-type { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: #888; }
+.pdf-export .section-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: #888; margin-bottom: 6px; }
+.pdf-export .content { font-size: 14px; white-space: pre-wrap; color: #222; }
+.pdf-export .conn-group { margin-bottom: 8px; }
+.pdf-export .conn-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #aaa; margin-bottom: 3px; }
+.pdf-export .conn-items { font-size: 13px; color: #333; }
+.pdf-export .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.pdf-export .tag { font-size: 12px; padding: 2px 10px; background: #f0f0f0; border-radius: 999px; color: #555; }
+.pdf-export .divider { border-top: 1px solid #e5e5e5; margin: 20px 0; }
+.pdf-export .note { margin-top: 10px; font-size: 13px; color: #555; border-left: 3px solid #ddd; padding-left: 12px; white-space: pre-wrap; }
+.pdf-export .footer { margin-top: 40px; padding-top: 12px; border-top: 1px solid #eee; font-size: 11px; color: #bbb; }
 </style>
-</head>
-<body>
-<div class="header">
-  <div class="record-name">${escapeHtml(recordName)}</div>
-  <div class="entity-type">${escapeHtml(config.label)}</div>
-</div>
-${sectionsHtml}
-<div class="footer">Health Reference · ${date}</div>
-</body>
-</html>`;
+<div class="pdf-export">
+  <div class="header">
+    <div class="record-name">${escapeHtml(recordName)}</div>
+    <div class="entity-type">${escapeHtml(config.label)}</div>
+  </div>
+  ${sectionsHtml}
+  <div class="footer">Health Reference · ${date}</div>
+</div>`;
+    document.body.appendChild(container);
 
-    const w = window.open("", "_blank");
-    if (!w) return;
-    w.document.write(html);
-    w.document.close();
-    w.focus();
-    setTimeout(() => w.print(), 300);
+    try {
+      const canvas = await html2canvas(container, { scale: 2, backgroundColor: "#ffffff" });
+
+      const pdf = new jsPDF({ unit: "pt", format: "letter" });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = pageWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const imgData = canvas.toDataURL("image/png");
+
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft > 0) {
+        position -= pageHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      pdf.save(`${recordName}.pdf`);
+    } finally {
+      document.body.removeChild(container);
+    }
   }
 
   return (
@@ -352,7 +372,7 @@ ${sectionsHtml}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)] shrink-0">
           <div>
             <h2 className="text-base font-semibold text-[var(--color-text)]">
-              Print / Save PDF
+              Download PDF
             </h2>
             <p className="text-xs text-[var(--color-muted)] mt-0.5">{recordName}</p>
           </div>
@@ -408,10 +428,10 @@ ${sectionsHtml}
             Cancel
           </button>
           <button
-            onClick={handlePrint}
+            onClick={handleDownloadPdf}
             className="px-5 py-2 bg-[var(--color-sidebar)] text-white text-sm rounded-lg hover:bg-[var(--color-sidebar-hover)] transition-colors"
           >
-            Print / Save PDF
+            Download PDF
           </button>
         </div>
       </div>
