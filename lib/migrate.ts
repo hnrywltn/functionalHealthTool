@@ -402,6 +402,8 @@ async function migrate() {
       )
     `);
 
+    await client.query(`ALTER TABLE equipment ADD COLUMN IF NOT EXISTS faqs TEXT`);
+
     await client.query(`
       CREATE TABLE IF NOT EXISTS affiliations (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

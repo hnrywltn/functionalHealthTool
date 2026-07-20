@@ -144,6 +144,7 @@ export const ENTITY_CONFIGS: EntityConfig[] = [
       { key: "maintenance", label: "Maintenance", type: "textarea" },
       { key: "contact", label: "Contact", type: "text" },
       { key: "cost", label: "Cost", type: "text" },
+      { key: "faqs", label: "FAQs", type: "textarea" },
       { key: "notes", label: "Notes", type: "textarea" },
     ],
   },
