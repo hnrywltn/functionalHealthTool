@@ -45,7 +45,7 @@ export default async function EntityDetailPage({ params }: Props) {
      FROM attachments a
      JOIN entity_attachments ea ON ea.attachment_id = a.id
      WHERE ea.entity_type = $1 AND ea.entity_id = $2
-     ORDER BY a.created_at DESC`,
+     ORDER BY a.label ASC`,
     [entity, id]
   );
 

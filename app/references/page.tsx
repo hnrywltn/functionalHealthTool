@@ -16,7 +16,7 @@ export default async function ReferencesPage() {
     FROM attachments a
     LEFT JOIN entity_attachments ea ON ea.attachment_id = a.id
     GROUP BY a.id
-    ORDER BY a.created_at DESC
+    ORDER BY a.label ASC
   `);
 
   // Enrich entity stubs with names

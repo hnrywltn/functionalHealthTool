@@ -321,7 +321,7 @@ export default function EntityDetailClient({ config, record, relationships, init
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ entity_type: config.type, entity_id: record.id, attachment_id: newAttachment.id }),
     });
-    setAttachments((prev) => [newAttachment, ...prev]);
+    setAttachments((prev) => [...prev, newAttachment].sort((a, b) => a.label.localeCompare(b.label)));
     setAttachPending(null);
     setAttachPendingLabel("");
   }
@@ -350,7 +350,7 @@ export default function EntityDetailClient({ config, record, relationships, init
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ entity_type: config.type, entity_id: record.id, attachment_id: attachment.id }),
     });
-    setAttachments((prev) => [attachment, ...prev]);
+    setAttachments((prev) => [...prev, attachment].sort((a, b) => a.label.localeCompare(b.label)));
     setAttachSearch("");
     setAttachResults([]);
   }

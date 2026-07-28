@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
      FROM attachments a
      JOIN entity_attachments ea ON ea.attachment_id = a.id
      WHERE ea.entity_type = $1 AND ea.entity_id = $2
-     ORDER BY a.created_at DESC`,
+     ORDER BY a.label ASC`,
     [entity_type, entity_id]
   );
   return NextResponse.json(rows);
@@ -42,6 +42,12 @@ export async function DELETE(req: NextRequest) {
   await pool.query(
     `DELETE FROM entity_attachments WHERE entity_type=$1 AND entity_id=$2 AND attachment_id=$3`,
     [entity_type, entity_id, attachment_id]
+  );
+  await pool.query(
+    `DELETE FROM attachments a
+     WHERE a.id = $1
+       AND NOT EXISTS (SELECT 1 FROM entity_attachments ea WHERE ea.attachment_id = a.id)`,
+    [attachment_id]
   );
   return NextResponse.json({ ok: true });
 }

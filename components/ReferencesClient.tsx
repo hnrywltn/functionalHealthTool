@@ -119,7 +119,7 @@ export default function ReferencesClient({ initialAttachments, allConfigs }: Pro
         })
       )
     );
-    setAttachments((prev) => [newAttachment, ...prev]);
+    setAttachments((prev) => [...prev, newAttachment].sort((a, b) => a.label.localeCompare(b.label)));
     setPending(null);
     setPendingLabel("");
     setPendingLinks([]);
@@ -140,7 +140,11 @@ export default function ReferencesClient({ initialAttachments, allConfigs }: Pro
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ label: renameValue.trim() }),
     });
-    setAttachments((prev) => prev.map((a) => a.id === id ? { ...a, label: renameValue.trim() } : a));
+    setAttachments((prev) =>
+      prev
+        .map((a) => (a.id === id ? { ...a, label: renameValue.trim() } : a))
+        .sort((a, b) => a.label.localeCompare(b.label))
+    );
     setRenamingId(null);
   }
 
