@@ -409,7 +409,13 @@ export default function EntityDetailClient({ config, record, relationships, init
       </Link>
 
       {/* Header */}
-      <div className="flex items-start justify-between mb-8">
+      <div
+        className={`flex items-start justify-between mb-8 ${
+          editing
+            ? "sticky top-0 z-20 -mx-8 px-8 py-3 bg-[var(--color-background)] border-b border-[var(--color-border)]"
+            : ""
+        }`}
+      >
         <div className="flex items-center gap-3">
           {editing ? (
             <input
