@@ -295,6 +295,16 @@ export default function PrintModal({
       }
     }
 
+    function sanitizeForPdf(text: string): string {
+      return text
+        .replace(/[‘’‚‛]/g, "'")
+        .replace(/[“”„‟]/g, '"')
+        .replace(/[–—]/g, "-")
+        .replace(/…/g, "...")
+        .replace(/ /g, " ")
+        .replace(/[•●]/g, "-");
+    }
+
     function drawWrapped(
       text: string,
       size: number,
@@ -306,7 +316,7 @@ export default function PrintModal({
       pdf.setFont("helvetica", style);
       pdf.setFontSize(size);
       pdf.setTextColor(color[0], color[1], color[2]);
-      const lines: string[] = pdf.splitTextToSize(text, contentWidth);
+      const lines: string[] = pdf.splitTextToSize(sanitizeForPdf(text), contentWidth);
       for (const line of lines) {
         ensureSpace(lineHeight);
         pdf.text(line, margin, y);
