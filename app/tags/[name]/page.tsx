@@ -40,7 +40,7 @@ export default async function TagPage({ params }: Params) {
   const totalCount = etRows.length;
 
   return (
-    <div className="max-w-3xl mx-auto px-8 py-10">
+    <div className="max-w-5xl mx-auto px-8 py-10">
       <Link
         href="/"
         className="text-sm text-[var(--color-muted)] hover:text-[var(--color-text)] transition-colors mb-6 inline-block"

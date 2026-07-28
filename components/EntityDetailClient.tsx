@@ -399,7 +399,7 @@ export default function EntityDetailClient({ config, record, relationships, init
     .filter((g) => g.items.length > 0);
 
   return (
-    <div className="max-w-3xl mx-auto px-8 py-10">
+    <div className="max-w-5xl mx-auto px-8 py-10">
       {/* Back link */}
       <Link
         href={`/${config.type}`}

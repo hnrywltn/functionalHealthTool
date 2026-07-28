@@ -145,7 +145,7 @@ export default function ReferencesClient({ initialAttachments, allConfigs }: Pro
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-8 py-10">
+    <div className="max-w-5xl mx-auto px-8 py-10">
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-2xl font-semibold text-[var(--color-text)]">References</h1>
         <div>
