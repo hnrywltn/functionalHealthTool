@@ -87,8 +87,9 @@ export default function EntityDetailClient({ config, record, relationships, init
   const [printOpen, setPrintOpen] = useState(false);
   const [attachments, setAttachments] = useState<Attachment[]>(initialAttachments);
   const [attachUploading, setAttachUploading] = useState(false);
-  const [attachPending, setAttachPending] = useState<{ key: string; file_type: string } | null>(null);
-  const [attachPendingLabel, setAttachPendingLabel] = useState("");
+  const [attachPendingItems, setAttachPendingItems] = useState<
+    { key: string; file_type: string; label: string }[]
+  >([]);
   const [attachSearch, setAttachSearch] = useState("");
   const [attachResults, setAttachResults] = useState<Attachment[]>([]);
   const [allAttachments, setAllAttachments] = useState<Attachment[]>([]);
@@ -281,49 +282,65 @@ export default function EntityDetailClient({ config, record, relationships, init
     return "other";
   }
 
-  async function uploadFile(file: File) {
+  async function uploadFiles(files: File[]) {
+    if (files.length === 0) return;
     setAttachUploading(true);
-    const fd = new FormData();
-    fd.append("file", file);
-    const res = await fetch("/api/upload", { method: "POST", body: fd });
-    const { key } = await res.json();
-    setAttachPending({ key, file_type: deriveFileType(file.name) });
-    setAttachPendingLabel(file.name);
+    const uploaded = await Promise.all(
+      files.map(async (file) => {
+        const fd = new FormData();
+        fd.append("file", file);
+        const res = await fetch("/api/upload", { method: "POST", body: fd });
+        const { key } = await res.json();
+        return { key, file_type: deriveFileType(file.name), label: file.name };
+      })
+    );
+    setAttachPendingItems((prev) => [...prev, ...uploaded]);
     setAttachUploading(false);
   }
 
   async function handleAttachFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files ?? []);
     e.target.value = "";
-    uploadFile(file);
+    uploadFiles(files);
   }
 
   function handleDrop(e: React.DragEvent) {
     e.preventDefault();
     setDragging(false);
-    if (attachUploading || attachPending) return;
-    const file = e.dataTransfer.files?.[0];
-    if (!file) return;
-    uploadFile(file);
+    if (attachUploading || attachPendingItems.length > 0) return;
+    uploadFiles(Array.from(e.dataTransfer.files));
   }
 
-  async function saveAttachPending() {
-    if (!attachPending || !attachPendingLabel.trim() || !record) return;
-    const res = await fetch("/api/attachments", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ label: attachPendingLabel.trim(), file_key: attachPending.key, file_type: attachPending.file_type }),
-    });
-    const newAttachment: Attachment = await res.json();
-    await fetch("/api/entity-attachments", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ entity_type: config.type, entity_id: record.id, attachment_id: newAttachment.id }),
-    });
-    setAttachments((prev) => [...prev, newAttachment].sort((a, b) => a.label.localeCompare(b.label)));
-    setAttachPending(null);
-    setAttachPendingLabel("");
+  function updatePendingLabel(index: number, label: string) {
+    setAttachPendingItems((prev) => prev.map((item, i) => (i === index ? { ...item, label } : item)));
+  }
+
+  function removePendingItem(index: number) {
+    setAttachPendingItems((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  async function saveAllPendingAttachments() {
+    if (!record || attachPendingItems.length === 0) return;
+    const newAttachments = await Promise.all(
+      attachPendingItems
+        .filter((item) => item.label.trim())
+        .map(async (item) => {
+          const res = await fetch("/api/attachments", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ label: item.label.trim(), file_key: item.key, file_type: item.file_type }),
+          });
+          const newAttachment: Attachment = await res.json();
+          await fetch("/api/entity-attachments", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ entity_type: config.type, entity_id: record.id, attachment_id: newAttachment.id }),
+          });
+          return newAttachment;
+        })
+    );
+    setAttachments((prev) => [...prev, ...newAttachments].sort((a, b) => a.label.localeCompare(b.label)));
+    setAttachPendingItems([]);
   }
 
   async function loadAllAttachments() {
@@ -775,26 +792,43 @@ export default function EntityDetailClient({ config, record, relationships, init
               </div>
             )}
 
-            {/* Pending upload inline form */}
-            {attachPending && (
+            {/* Pending uploads inline review list */}
+            {attachPendingItems.length > 0 && (
               <div className="mb-3 p-3 bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg space-y-2">
-                <input
-                  autoFocus
-                  className="w-full text-sm border border-[var(--color-border)] rounded-lg px-3 py-2 outline-none focus:border-[var(--color-sidebar)] transition-colors bg-white"
-                  value={attachPendingLabel}
-                  onChange={(e) => setAttachPendingLabel(e.target.value)}
-                  placeholder="Label this file…"
-                  onKeyDown={(e) => { if (e.key === "Enter") saveAttachPending(); if (e.key === "Escape") { setAttachPending(null); setAttachPendingLabel(""); } }}
-                />
+                {attachPendingItems.map((item, i) => (
+                  <div key={item.key} className="flex items-center gap-2">
+                    <input
+                      autoFocus={i === 0}
+                      className="w-full text-sm border border-[var(--color-border)] rounded-lg px-3 py-2 outline-none focus:border-[var(--color-sidebar)] transition-colors bg-white"
+                      value={item.label}
+                      onChange={(e) => updatePendingLabel(i, e.target.value)}
+                      placeholder="Label this file…"
+                      onKeyDown={(e) => { if (e.key === "Enter") saveAllPendingAttachments(); if (e.key === "Escape") removePendingItem(i); }}
+                    />
+                    <button
+                      onClick={() => removePendingItem(i)}
+                      className="text-[var(--color-muted)] hover:text-rose-500 text-lg leading-none shrink-0"
+                      title="Remove"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
                 <div className="flex gap-2 justify-end">
-                  <button onClick={() => { setAttachPending(null); setAttachPendingLabel(""); }} className="px-3 py-1 text-xs text-[var(--color-muted)] hover:text-[var(--color-text)] transition-colors">Cancel</button>
-                  <button onClick={saveAttachPending} disabled={!attachPendingLabel.trim()} className="px-3 py-1 text-xs bg-[var(--color-sidebar)] text-white rounded-md disabled:opacity-50 transition-colors">Save</button>
+                  <button onClick={() => setAttachPendingItems([])} className="px-3 py-1 text-xs text-[var(--color-muted)] hover:text-[var(--color-text)] transition-colors">Cancel</button>
+                  <button
+                    onClick={saveAllPendingAttachments}
+                    disabled={attachPendingItems.some((item) => !item.label.trim())}
+                    className="px-3 py-1 text-xs bg-[var(--color-sidebar)] text-white rounded-md disabled:opacity-50 transition-colors"
+                  >
+                    {attachPendingItems.length > 1 ? `Save all (${attachPendingItems.length})` : "Save"}
+                  </button>
                 </div>
               </div>
             )}
 
             {/* Drop zone */}
-            {!isNew && !attachPending && (
+            {!isNew && attachPendingItems.length === 0 && (
               <div
                 onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
                 onDragLeave={() => setDragging(false)}
@@ -802,9 +836,9 @@ export default function EntityDetailClient({ config, record, relationships, init
                 className={`mb-3 flex flex-col items-center justify-center rounded-lg border-2 border-dashed px-4 py-6 transition-colors ${dragging ? "border-[var(--color-sidebar)] bg-[var(--color-sidebar)]/5" : "border-[var(--color-border)]"}`}
               >
                 <p className="text-sm text-[var(--color-muted)] mb-2">
-                  {attachUploading ? "Uploading…" : "Drag & drop a file here"}
+                  {attachUploading ? "Uploading…" : "Drag & drop files here"}
                 </p>
-                <input ref={attachFileRef} type="file" accept=".pdf,.png,.jpg,.jpeg,.webp" className="hidden" onChange={handleAttachFileSelect} />
+                <input ref={attachFileRef} type="file" accept=".pdf,.png,.jpg,.jpeg,.webp" multiple className="hidden" onChange={handleAttachFileSelect} />
                 <button
                   onClick={() => attachFileRef.current?.click()}
                   disabled={attachUploading}
