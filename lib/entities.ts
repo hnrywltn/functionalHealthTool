@@ -346,3 +346,9 @@ export const ENTITY_TYPES = ENTITY_CONFIGS.map((e) => e.type);
 export function getEntityConfig(type: string): EntityConfig | undefined {
   return ENTITY_CONFIGS.find((e) => e.type === type);
 }
+
+// Lowercases a label for inline display ("3 supplements", "Search labs…") without
+// mangling acronym labels like "CE", which should stay capitalized everywhere.
+export function lowerLabel(label: string): string {
+  return label === label.toUpperCase() ? label : label.toLowerCase();
+}

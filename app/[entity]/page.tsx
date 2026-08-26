@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import pool from "@/lib/db";
-import { getEntityConfig, ENTITY_TYPES } from "@/lib/entities";
+import { getEntityConfig, ENTITY_TYPES, lowerLabel } from "@/lib/entities";
 import EntityListClient from "@/components/EntityListClient";
 
 type Props = { params: Promise<{ entity: string }> };
@@ -29,7 +29,7 @@ export default async function EntityListPage({ params }: Props) {
             {config.labelPlural}
           </h1>
           <p className="text-sm text-[var(--color-muted)] mt-1">
-            {rows.length} {rows.length === 1 ? config.label.toLowerCase() : config.labelPlural.toLowerCase()}
+            {rows.length} {rows.length === 1 ? lowerLabel(config.label) : lowerLabel(config.labelPlural)}
           </p>
         </div>
         <Link

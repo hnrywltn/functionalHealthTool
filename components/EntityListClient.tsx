@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { lowerLabel } from "@/lib/entities";
 
 type Row = { id: string; name: string; description: string | null };
 
@@ -27,7 +28,7 @@ export default function EntityListClient({ rows, entity, label, labelPlural, col
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder={`Search ${labelPlural.toLowerCase()}…`}
+          placeholder={`Search ${lowerLabel(labelPlural)}…`}
           className="w-full px-4 py-2.5 pr-10 rounded-lg border border-[var(--color-border)] bg-white text-[var(--color-text)] text-sm placeholder:text-[var(--color-muted)] focus:outline-none focus:border-[var(--color-accent-hover)] transition-colors"
         />
         {query && (
@@ -47,7 +48,7 @@ export default function EntityListClient({ rows, entity, label, labelPlural, col
             <p className="text-lg">No results for "{query}"</p>
           ) : (
             <>
-              <p className="text-lg">No {labelPlural.toLowerCase()} yet</p>
+              <p className="text-lg">No {lowerLabel(labelPlural)} yet</p>
               <p className="text-sm mt-1">Add your first one to get started.</p>
             </>
           )}
