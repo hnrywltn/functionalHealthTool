@@ -107,8 +107,12 @@ export const ENTITY_CONFIGS: EntityConfig[] = [
     hex: "#D4A24C",
     fields: [
       { key: "description", label: "Description", type: "textarea" },
-      { key: "topic", label: "Topic", type: "text" },
+      { key: "faculty", label: "Faculty", type: "text" },
+      { key: "content", label: "Content", type: "textarea" },
       { key: "source", label: "Source", type: "entity_source", sourceEntityTypes: ["laboratories", "vendors"] },
+      { key: "date", label: "Date", type: "text" },
+      { key: "ce", label: "CE", type: "text" },
+      { key: "cost", label: "Cost", type: "text" },
       { key: "notes", label: "Notes", type: "textarea" },
     ],
   },

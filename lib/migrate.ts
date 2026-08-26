@@ -382,6 +382,11 @@ async function migrate() {
     `);
 
     await client.query(`ALTER TABLE ce ADD COLUMN IF NOT EXISTS description TEXT`);
+    await client.query(`ALTER TABLE ce ADD COLUMN IF NOT EXISTS faculty TEXT`);
+    await client.query(`ALTER TABLE ce ADD COLUMN IF NOT EXISTS content TEXT`);
+    await client.query(`ALTER TABLE ce ADD COLUMN IF NOT EXISTS date TEXT`);
+    await client.query(`ALTER TABLE ce ADD COLUMN IF NOT EXISTS ce TEXT`);
+    await client.query(`ALTER TABLE ce ADD COLUMN IF NOT EXISTS cost TEXT`);
 
     await client.query(`
       CREATE TABLE IF NOT EXISTS equipment (
