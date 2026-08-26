@@ -7,6 +7,10 @@ import { EntityConfig, FieldDef } from "@/lib/entities";
 import PrintModal from "@/components/PrintModal";
 import SourceModal, { parseSourceValue, serializeSourceValue, SourceValue } from "@/components/SourceModal";
 
+function isUrl(str: string): boolean {
+  return /^https?:\/\//i.test(str.trim());
+}
+
 function AutoTextarea({ className, value, onChange, placeholder }: {
   className?: string;
   value: string;
@@ -526,6 +530,19 @@ export default function EntityDetailClient({ config, record, relationships, init
                         >
                           {sv.name} →
                         </Link>
+                      );
+                    }
+                    const linkUrl = sv.url || (sv.text && isUrl(sv.text) ? sv.text : null);
+                    if (linkUrl) {
+                      return (
+                        <a
+                          href={linkUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm text-[var(--color-sidebar)] hover:underline break-all"
+                        >
+                          {sv.text || linkUrl}
+                        </a>
                       );
                     }
                     return <p className="text-sm text-[var(--color-text)] whitespace-pre-wrap">{sv.text}</p>;

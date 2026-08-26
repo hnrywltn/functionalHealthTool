@@ -6,6 +6,7 @@ import { EntityConfig } from "@/lib/entities";
 export type SourceValue = {
   type: "text";
   text: string;
+  url?: string;
 } | {
   type: "entity";
   entity_type: string;
@@ -41,6 +42,7 @@ export function serializeSourceValue(value: SourceValue | null): string | null {
 export default function SourceModal({ label, sourceEntityTypes, allConfigs, initialValue, onSave, onClose }: Props) {
   const [mode, setMode] = useState<"text" | "entity">(initialValue?.type ?? "text");
   const [text, setText] = useState(initialValue?.type === "text" ? initialValue.text : "");
+  const [url, setUrl] = useState(initialValue?.type === "text" ? (initialValue.url ?? "") : "");
   const [search, setSearch] = useState("");
   const [results, setResults] = useState<{ id: string; name: string; type: string }[]>([]);
   const [searching, setSearching] = useState(false);
@@ -76,7 +78,9 @@ export default function SourceModal({ label, sourceEntityTypes, allConfigs, init
 
   function handleSave() {
     if (mode === "text") {
-      if (!text.trim()) { onSave(null); } else { onSave({ type: "text", text: text.trim() }); }
+      const trimmedText = text.trim();
+      const trimmedUrl = url.trim();
+      if (!trimmedText && !trimmedUrl) { onSave(null); } else { onSave({ type: "text", text: trimmedText, url: trimmedUrl || undefined }); }
     } else {
       if (!selected) { onSave(null); } else { onSave({ type: "entity", entity_type: selected.entity_type, entity_id: selected.entity_id, name: selected.name }); }
     }
@@ -116,13 +120,22 @@ export default function SourceModal({ label, sourceEntityTypes, allConfigs, init
           </div>
 
           {mode === "text" ? (
-            <textarea
-              autoFocus
-              className="w-full text-sm text-[var(--color-text)] bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg px-3 py-2 resize-none outline-none focus:border-[var(--color-sidebar)] transition-colors min-h-[80px]"
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              placeholder="Type a source…"
-            />
+            <div className="space-y-3">
+              <textarea
+                autoFocus
+                className="w-full text-sm text-[var(--color-text)] bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg px-3 py-2 resize-none outline-none focus:border-[var(--color-sidebar)] transition-colors min-h-[80px]"
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                placeholder="Type a source…"
+              />
+              <input
+                type="text"
+                className="w-full text-sm text-[var(--color-text)] bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg px-3 py-2 outline-none focus:border-[var(--color-sidebar)] transition-colors"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                placeholder="Link (optional) — https://…"
+              />
+            </div>
           ) : (
             <div className="space-y-3">
               {selected && (
