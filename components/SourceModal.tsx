@@ -3,10 +3,14 @@
 import { useEffect, useState } from "react";
 import { EntityConfig } from "@/lib/entities";
 
-export type SourceValue = {
-  type: "text";
+export type SourceLink = {
   text: string;
   url?: string;
+};
+
+export type SourceValue = {
+  type: "text";
+  links: SourceLink[];
 } | {
   type: "entity";
   entity_type: string;
@@ -27,22 +31,37 @@ export function parseSourceValue(raw: string | null | undefined): SourceValue | 
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw);
-    if (parsed.type === "entity" || parsed.type === "text") return parsed;
+    if (parsed.type === "entity") return parsed;
+    if (parsed.type === "text") {
+      if (Array.isArray(parsed.links)) return { type: "text", links: parsed.links };
+      // legacy single text/url shape
+      return { type: "text", links: [{ text: parsed.text ?? "", url: parsed.url }] };
+    }
     return null;
   } catch {
-    return { type: "text", text: raw };
+    return { type: "text", links: [{ text: raw }] };
   }
 }
 
 export function serializeSourceValue(value: SourceValue | null): string | null {
   if (!value) return null;
+  if (value.type === "text") {
+    const links = value.links
+      .map((l) => ({ text: l.text.trim(), url: (l.url ?? "").trim() || undefined }))
+      .filter((l) => l.text || l.url);
+    if (links.length === 0) return null;
+    return JSON.stringify({ type: "text", links });
+  }
   return JSON.stringify(value);
 }
 
 export default function SourceModal({ label, sourceEntityTypes, allConfigs, initialValue, onSave, onClose }: Props) {
   const [mode, setMode] = useState<"text" | "entity">(initialValue?.type ?? "text");
-  const [text, setText] = useState(initialValue?.type === "text" ? initialValue.text : "");
-  const [url, setUrl] = useState(initialValue?.type === "text" ? (initialValue.url ?? "") : "");
+  const [links, setLinks] = useState<SourceLink[]>(
+    initialValue?.type === "text" && initialValue.links.length > 0
+      ? initialValue.links.map((l) => ({ text: l.text, url: l.url ?? "" }))
+      : [{ text: "", url: "" }]
+  );
   const [search, setSearch] = useState("");
   const [results, setResults] = useState<{ id: string; name: string; type: string }[]>([]);
   const [searching, setSearching] = useState(false);
@@ -78,9 +97,10 @@ export default function SourceModal({ label, sourceEntityTypes, allConfigs, init
 
   function handleSave() {
     if (mode === "text") {
-      const trimmedText = text.trim();
-      const trimmedUrl = url.trim();
-      if (!trimmedText && !trimmedUrl) { onSave(null); } else { onSave({ type: "text", text: trimmedText, url: trimmedUrl || undefined }); }
+      const cleaned = links
+        .map((l) => ({ text: l.text.trim(), url: (l.url ?? "").trim() || undefined }))
+        .filter((l) => l.text || l.url);
+      if (cleaned.length === 0) { onSave(null); } else { onSave({ type: "text", links: cleaned }); }
     } else {
       if (!selected) { onSave(null); } else { onSave({ type: "entity", entity_type: selected.entity_type, entity_id: selected.entity_id, name: selected.name }); }
     }
@@ -90,6 +110,18 @@ export default function SourceModal({ label, sourceEntityTypes, allConfigs, init
   function handleClear() {
     onSave(null);
     onClose();
+  }
+
+  function updateLink(i: number, field: "text" | "url", value: string) {
+    setLinks((prev) => prev.map((l, idx) => (idx === i ? { ...l, [field]: value } : l)));
+  }
+
+  function addLink() {
+    setLinks((prev) => [...prev, { text: "", url: "" }]);
+  }
+
+  function removeLink(i: number) {
+    setLinks((prev) => prev.filter((_, idx) => idx !== i));
   }
 
   return (
@@ -121,20 +153,41 @@ export default function SourceModal({ label, sourceEntityTypes, allConfigs, init
 
           {mode === "text" ? (
             <div className="space-y-3">
-              <textarea
-                autoFocus
-                className="w-full text-sm text-[var(--color-text)] bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg px-3 py-2 resize-none outline-none focus:border-[var(--color-sidebar)] transition-colors min-h-[80px]"
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                placeholder="Type a source…"
-              />
-              <input
-                type="text"
-                className="w-full text-sm text-[var(--color-text)] bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg px-3 py-2 outline-none focus:border-[var(--color-sidebar)] transition-colors"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                placeholder="Link (optional) — https://…"
-              />
+              {links.map((link, i) => (
+                <div
+                  key={i}
+                  className="relative p-3 bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg space-y-2"
+                >
+                  {links.length > 1 && (
+                    <button
+                      onClick={() => removeLink(i)}
+                      className="absolute top-2 right-2 text-[var(--color-muted)] hover:text-rose-500 text-lg leading-none"
+                    >
+                      ×
+                    </button>
+                  )}
+                  <textarea
+                    autoFocus={i === 0}
+                    className="w-full text-sm text-[var(--color-text)] bg-white border border-[var(--color-border)] rounded-lg px-3 py-2 resize-none outline-none focus:border-[var(--color-sidebar)] transition-colors min-h-[40px] pr-6"
+                    value={link.text}
+                    onChange={(e) => updateLink(i, "text", e.target.value)}
+                    placeholder="Type a source…"
+                  />
+                  <input
+                    type="text"
+                    className="w-full text-sm text-[var(--color-text)] bg-white border border-[var(--color-border)] rounded-lg px-3 py-2 outline-none focus:border-[var(--color-sidebar)] transition-colors"
+                    value={link.url ?? ""}
+                    onChange={(e) => updateLink(i, "url", e.target.value)}
+                    placeholder="Link (optional) — https://…"
+                  />
+                </div>
+              ))}
+              <button
+                onClick={addLink}
+                className="text-sm text-[var(--color-sidebar)] hover:underline"
+              >
+                + Add another link
+              </button>
             </div>
           ) : (
             <div className="space-y-3">

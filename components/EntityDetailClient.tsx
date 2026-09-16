@@ -515,7 +515,8 @@ export default function EntityDetailClient({ config, record, relationships, init
                       const sv = sourceValues[field.key];
                       if (!sv) return <span className="text-[var(--color-muted)]">Click to set source…</span>;
                       if (sv.type === "entity") return <span className="text-[var(--color-text)]">{sv.name}</span>;
-                      return <span className="text-[var(--color-text)]">{sv.text}</span>;
+                      const summary = sv.links.map((l) => l.text || l.url).filter(Boolean).join(", ");
+                      return <span className="text-[var(--color-text)]">{summary}</span>;
                     })()}
                   </button>
                 ) : (
@@ -532,20 +533,31 @@ export default function EntityDetailClient({ config, record, relationships, init
                         </Link>
                       );
                     }
-                    const linkUrl = sv.url || (sv.text && isUrl(sv.text) ? sv.text : null);
-                    if (linkUrl) {
-                      return (
-                        <a
-                          href={linkUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm text-[var(--color-sidebar)] hover:underline break-all"
-                        >
-                          {sv.text || linkUrl}
-                        </a>
-                      );
-                    }
-                    return <p className="text-sm text-[var(--color-text)] whitespace-pre-wrap">{sv.text}</p>;
+                    return (
+                      <div className="space-y-1.5">
+                        {sv.links.map((l, i) => {
+                          const linkUrl = l.url || (l.text && isUrl(l.text) ? l.text : null);
+                          if (linkUrl) {
+                            return (
+                              <a
+                                key={i}
+                                href={linkUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="block text-sm text-[var(--color-sidebar)] hover:underline break-all"
+                              >
+                                {l.text || linkUrl}
+                              </a>
+                            );
+                          }
+                          return (
+                            <p key={i} className="text-sm text-[var(--color-text)] whitespace-pre-wrap">
+                              {l.text}
+                            </p>
+                          );
+                        })}
+                      </div>
+                    );
                   })()
                 )
               ) : editing ? (
