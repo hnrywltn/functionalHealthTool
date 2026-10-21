@@ -1,6 +1,6 @@
 # API
 
-Next.js App Router route handlers under `app/api/`. All export `dynamic = "force-dynamic"` (no static caching — every request hits Postgres/R2 live). All responses are JSON via `NextResponse.json()`. No API versioning, no auth/session checks on any route.
+Next.js App Router route handlers under `app/api/`. All export `dynamic = "force-dynamic"` (no static caching — every request hits Postgres/R2 live). All responses are JSON via `NextResponse.json()`. No API versioning. Auth is enforced by `proxy.ts` before any route runs; requests without a valid session get `401`.
 
 | Route | Methods | Purpose |
 |---|---|---|
@@ -22,4 +22,4 @@ Next.js App Router route handlers under `app/api/`. All export `dynamic = "force
 - Dynamic route params are `Promise`-typed and awaited (Next.js 16 App Router convention): `{ params }: { params: Promise<{ id: string }> }`.
 - Entity type strings are validated against `ENTITY_TYPES` (`lib/entities.ts`) before being interpolated into SQL — this is the only guard against arbitrary table access.
 - No request validation library (no Zod, Yup, etc.) — bodies are destructured directly from `req.json()`.
-- No middleware layer (see [`architecture.md`](./architecture.md)) — no auth, rate limiting, or logging middleware runs in front of these routes.
+- `proxy.ts` (see [`architecture.md`](./architecture.md)) gates every route on a valid session. No rate limiting or logging layer.

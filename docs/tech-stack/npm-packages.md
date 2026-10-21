@@ -12,8 +12,8 @@ As of the versions pinned in `package.json`. Run `npm ls <pkg>` or check `packag
 | `@aws-sdk/client-s3` | ^3.1037.0 | S3-compatible client, used against Cloudflare R2 for file storage |
 | `@aws-sdk/s3-request-presigner` | ^3.1037.0 | Generates signed download URLs for R2 objects |
 | `@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities` | ^6.3.1 / ^10.0.0 / ^3.2.2 | Drag-and-drop — used for the entry References drag & drop UI |
-| `bcryptjs` | ^3.0.3 | Password hashing — **installed but not currently wired up anywhere in `app/` or `lib/`** |
-| `jose` | ^6.2.2 | JWT signing/verification — **installed but not currently wired up anywhere**. Likely intended for future auth since this app currently has no auth layer at all (single private user, run locally) |
+| `bcryptjs` | ^3.0.3 | Password hashing for login (`app/login/actions.ts`, `lib/set-password.ts`) |
+| `jose` | ^6.2.2 | Session JWT signing/verification (`lib/session.ts`, used by `proxy.ts`) |
 | `jspdf` | ^4.2.1 | Client-side PDF generation |
 | `lucide-react` | ^1.8.0 | Icon set used throughout the UI |
 

@@ -11,13 +11,18 @@
 
 **None.** Database access is raw SQL via the `pg` driver (`lib/db.ts`). See [`database.md`](./database.md).
 
-## Middleware
+## Proxy (middleware)
 
-**None.** There is no `middleware.ts` at the project root — no request interception, no auth gate, no rewrites/redirects at the middleware layer. Every route handler runs unguarded.
+`proxy.ts` (Next 16's name for middleware) runs on every request except `_next/static`, `_next/image` and `favicon.ico`. It verifies the session JWT; without a valid one, pages redirect to `/login?next=…` and `/api/*` returns `401 {"error":"Unauthorized"}`. Signed-in visits to `/login` redirect to `/`.
 
 ## Auth
 
-**None currently implemented.** This is a single-user private tool (Anna Stone) run either locally or on a private deployment — there's no login, session, or user model in the schema. `jose` and `bcryptjs` are installed as dependencies but not used anywhere yet (likely staged for future auth work — see [`npm-packages.md`](./npm-packages.md)).
+Email + password login for a single user (Anna, `annastone@me.com`).
+
+- `users` table (`email` unique, `password_hash` bcrypt cost 12).
+- `app/login/` — login page and server actions `login` / `logout`. Sign out lives at the bottom of the sidebar.
+- `lib/session.ts` — HS256 JWT signed with `SESSION_SECRET` (env var, required), stored in an httpOnly `session` cookie for 30 days. Stateless: rotating `SESSION_SECRET` signs everyone out.
+- Passwords are set or reset with `npm run set-password -- <email>` (hidden prompt). No sign-up or reset-by-email flow.
 
 ## File storage
 

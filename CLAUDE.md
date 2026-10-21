@@ -10,6 +10,7 @@ npm run build      # Production build
 npm run lint       # ESLint
 npm run migrate    # Run DB migrations against local Postgres
 npx tsc --noEmit   # Type-check without building
+npm run set-password -- annastone@me.com   # Create user / reset password (prompts)
 ```
 
 ## Project
@@ -21,6 +22,8 @@ Built by Light Patterns (Henry Walton) for Anna Stone.
 Stack: **Next.js 16 (App Router) + TypeScript + Tailwind CSS v4 + pg (raw SQL)**
 
 DB: local Postgres, database `annas_health_tool`. Connection string in `.env.local` as `DATABASE_URL`.
+
+Auth: single-user email/password. `proxy.ts` gates every route via a JWT session cookie (`lib/session.ts`, needs `SESSION_SECRET`). Login/logout server actions in `app/login/actions.ts`.
 
 ## Data Model
 
