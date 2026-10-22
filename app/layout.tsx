@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
 import Sidebar from "@/components/Sidebar";
+import AccountMenu from "@/components/AccountMenu";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
 
@@ -16,6 +17,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="h-full flex antialiased" suppressHydrationWarning>
         <Sidebar />
         <main className="flex-1 overflow-y-auto flex flex-col">
+          <AccountMenu />
           <div className="flex-1">{children}</div>
           <footer className="bg-[var(--color-sidebar)] mt-16">
             <div className="border-t border-white/10 px-8 py-5 flex items-center justify-between">

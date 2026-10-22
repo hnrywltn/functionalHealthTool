@@ -4,7 +4,6 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ENTITY_CONFIGS } from "@/lib/entities";
-import { logout } from "@/app/login/actions";
 
 type RecordStub = { id: string; name: string };
 
@@ -185,15 +184,6 @@ export default function Sidebar() {
             <span className="w-2 h-2 rounded-full shrink-0 bg-white/40" />
             References
           </Link>
-          <form action={logout}>
-            <button
-              type="submit"
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-white/40 hover:text-white hover:bg-white/8 transition-colors"
-            >
-              <span className="w-2 h-2 shrink-0" />
-              Sign out
-            </button>
-          </form>
         </div>
       </nav>
 
