@@ -9,6 +9,8 @@ As of the versions pinned in `package.json`. Run `npm ls <pkg>` or check `packag
 | `next` | 16.2.4 | App framework — App Router, route handlers, dev/build/start |
 | `react` / `react-dom` | 19.2.4 | UI rendering |
 | `pg` | ^8.20.0 | Raw Postgres driver — no ORM. See [`database.md`](./database.md) |
+| `stripe` | ^22.6.2 | Server-side Stripe SDK (`lib/stripe.ts`, `app/api/stripe/*`, `app/api/webhooks/stripe`) |
+| `@stripe/stripe-js` / `@stripe/react-stripe-js` | ^9.17.0 / ^6.12.0 | Embedded Payment Element on `/payments` (`components/payments/CheckoutForm.tsx`), not Stripe's hosted checkout |
 | `@aws-sdk/client-s3` | ^3.1037.0 | S3-compatible client, used against Cloudflare R2 for file storage |
 | `@aws-sdk/s3-request-presigner` | ^3.1037.0 | Generates signed download URLs for R2 objects |
 | `@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities` | ^6.3.1 / ^10.0.0 / ^3.2.2 | Drag-and-drop — used for the entry References drag & drop UI |

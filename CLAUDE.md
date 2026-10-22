@@ -25,6 +25,8 @@ DB: local Postgres, database `annas_health_tool`. Connection string in `.env.loc
 
 Auth: single-user email/password. `proxy.ts` gates every route via a JWT session cookie (`lib/session.ts`, needs `SESSION_SECRET`). Login/logout server actions in `app/login/actions.ts`.
 
+Billing: Stripe, monthly auto-pay or one month at a time, on `/payments` (account menu, top right). Webhook at `/api/webhooks/stripe` is excluded from the auth gate. Overdue only shows a banner, never blocks access. See `docs/tech-stack/architecture.md` → Billing.
+
 ## Data Model
 
 Seven entity types, all cross-referenceable:

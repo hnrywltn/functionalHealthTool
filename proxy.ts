@@ -22,5 +22,6 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  // api/webhooks/stripe is called by Stripe (no session); it verifies its own signature.
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|api/webhooks/stripe).*)"],
 };

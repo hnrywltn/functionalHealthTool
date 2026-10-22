@@ -9,6 +9,10 @@ Next.js App Router route handlers under `app/api/`. All export `dynamic = "force
 | `/api/relationships` | GET, POST, DELETE | Read relationships for an entity (either side of `entity_relationships`), create a link, delete a link |
 | `/api/entity-tags` | GET, POST, DELETE | List tags on an entity, tag an entity (upserts the tag by name), remove a tag |
 | `/api/tags` | GET | List all tags |
+| `/api/stripe/create-subscription` | POST | Start monthly auto-pay. Returns `{ clientSecret, mode }`: `mode: "payment"` charges the first month now; `mode: "setup"` (when already paid ahead) only saves the card, with a trial until the paid period ends. Cancels any earlier unfinished attempt first |
+| `/api/stripe/create-payment-intent` | POST | Pay one month, no saved card. Amount comes from the one-off Price in Stripe; `metadata.source = "one_off_month"` |
+| `/api/stripe/cancel-subscription` | POST | Turn off auto-pay at period end, or `{ resume: true }` to undo. DB updated by the webhook, not here |
+| `/api/webhooks/stripe` | POST | **Excluded from `proxy.ts`** — Stripe has no session. Signature-verified against the raw body. Idempotent via `stripe_webhook_events`. Records `payments` rows from `payment_intent.succeeded` (one-off only) and `invoice.paid` (monthly price, non-zero only); syncs subscription status from `customer.subscription.updated`/`.deleted` |
 | `/api/tags/[name]` | GET | All entities (grouped by type) carrying a given tag |
 | `/api/entity-attachments` | GET, POST, DELETE | List attachments on an entity, attach one, detach one (detach also garbage-collects the `attachments` row if orphaned) |
 | `/api/attachments` | GET, POST | List all attachments (with their linked entities), create an attachment record |

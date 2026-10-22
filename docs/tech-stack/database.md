@@ -38,6 +38,12 @@ Supporting/join tables:
 - `tags` — free-form tag names
 - `entity_tags` — join table, links `tags` to any entity
 
+Auth/billing tables:
+
+- `users` — `email` (unique), `password_hash`, plus Stripe columns: `stripe_customer_id` (unique, created on first checkout), `stripe_subscription_id`, `stripe_subscription_status` (Stripe's own values, synced by the webhook; a paid-ahead trial with no card yet is stored as `incomplete`), `stripe_cancel_at_period_end`.
+- `payments` — one row per successful payment: `user_id`, `kind` (`subscription`/`one_off`), `amount_cents`, `currency`, `period_start`, `period_end`, `stripe_reference` (unique — PaymentIntent or Invoice id). "Paid through" = `MAX(period_end)`. A one-off month starts at the later of now and the current paid-through date.
+- `stripe_webhook_events` — idempotency claim table keyed on Stripe's `event.id`.
+
 ## Notable patterns
 
 - Route handlers interpolate the entity table name directly into SQL (e.g. `` `SELECT * FROM ${entity}` ``), guarded by validating `entity` against `ENTITY_TYPES` (from `lib/entities.ts`) before the query runs — this is how one generic CRUD route handler serves all 19 entity tables.

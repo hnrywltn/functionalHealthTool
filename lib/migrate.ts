@@ -492,6 +492,44 @@ async function migrate() {
       )
     `);
 
+    // Stripe billing: one Customer per user, created lazily on first checkout.
+    // Subscription status mirrors Stripe's own values, kept in sync by the webhook.
+    for (const col of [
+      "stripe_customer_id TEXT UNIQUE",
+      "stripe_subscription_id TEXT",
+      "stripe_subscription_status TEXT",
+      "stripe_cancel_at_period_end BOOLEAN NOT NULL DEFAULT FALSE",
+    ]) {
+      await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS ${col}`);
+    }
+
+    // One row per successful payment (auto-pay invoice or one-off month).
+    // "Paid through" is MAX(period_end) for the user.
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS payments (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        kind TEXT NOT NULL,
+        amount_cents INTEGER NOT NULL,
+        currency TEXT NOT NULL DEFAULT 'usd',
+        period_start TIMESTAMPTZ NOT NULL,
+        period_end TIMESTAMPTZ NOT NULL,
+        stripe_reference TEXT NOT NULL UNIQUE,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_payments_user ON payments(user_id, period_end)`);
+
+    // Webhook idempotency: claiming event.id in the same transaction as the
+    // write it guards makes a redelivered event a no-op.
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS stripe_webhook_events (
+        id TEXT PRIMARY KEY,
+        type TEXT NOT NULL,
+        processed_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `);
+
     await client.query("COMMIT");
     console.log("Migration complete.");
   } catch (err) {

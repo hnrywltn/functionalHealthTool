@@ -3,6 +3,7 @@ import { Geist } from "next/font/google";
 import "./globals.css";
 import Sidebar from "@/components/Sidebar";
 import AccountMenu from "@/components/AccountMenu";
+import PaymentBanner from "@/components/payments/PaymentBanner";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
 
@@ -17,6 +18,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="h-full flex antialiased" suppressHydrationWarning>
         <Sidebar />
         <main className="flex-1 overflow-y-auto flex flex-col">
+          <PaymentBanner />
           <AccountMenu />
           <div className="flex-1">{children}</div>
           <footer className="bg-[var(--color-sidebar)] mt-16">
