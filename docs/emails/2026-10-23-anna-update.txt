@@ -1,0 +1,29 @@
+Subject: Health Reference updates: login, payments, and Contacts
+
+Hi Anna,
+
+Here's a quick rundown of what's new on Health Reference.
+
+1. Signing in
+The site is now private and needs a login. Your username is your email, annastone@me.com. I'll send your password separately. You'll stay signed in for 30 days on each device.
+
+2. Your account menu
+There's a small circle with a person icon at the top right of every page. Click it to find:
+- Payments
+- Settings (coming soon)
+- Sign out (it used to be at the bottom of the left menu)
+
+3. Payments
+The Payments page (in that menu) is where you pay for Health Reference, $50 a month. You can either:
+- Turn on auto-pay, so your card is charged automatically each month. You can turn it off anytime and keep access through the month you've paid for.
+- Pay one month at a time, without saving a card. If you pay early, the new month is added on after the one you've already paid for, so you never lose days.
+The page shows what you've paid through and a history of your payments.
+
+If a payment is coming up or overdue, you'll see a small reminder banner at the top of the page. It's only a reminder. It never locks you out of anything.
+
+4. Contacts
+As you asked, Contacts is now in the main menu. Each contact has Name, Title, Department, Company, Phone, Fax, Email, URL, Address, Date Met - Referral, and Notes. Like everything else, contacts can be searched, tagged, and linked to other entries.
+
+Let me know if anything looks off or you'd like changes.
+
+Henry
