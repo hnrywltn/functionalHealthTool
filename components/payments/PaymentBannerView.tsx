@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 
 export default function PaymentBannerView({ message }: { message: string }) {
   const pathname = usePathname();
-  if (pathname === "/login" || pathname === "/payments") return null;
+  if (pathname === "/login" || pathname === "/set-password" || pathname === "/payments") return null;
 
   return (
     <div className="mx-6 mt-4 flex items-center justify-between gap-4 rounded-lg border border-[#FE6959]/30 bg-[#FE6959]/8 px-4 py-2.5 text-sm text-[var(--color-text)]">

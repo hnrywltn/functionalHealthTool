@@ -27,6 +27,8 @@ Auth: single-user email/password. `proxy.ts` gates every route via a JWT session
 
 Billing: Stripe, monthly auto-pay or one month at a time, on `/payments` (account menu, top right). Webhook at `/api/webhooks/stripe` is excluded from the auth gate. Overdue only shows a banner, never blocks access. See `docs/tech-stack/architecture.md` → Billing.
 
+Admin: `users.is_super_admin` (set by SQL only) unlocks `/admin` (404 for everyone else) to record or delete payment rows by hand, and exempts that user from billing. `users.must_change_password` confines a session to `/set-password` until a new password is chosen (enforced in `proxy.ts` via a JWT claim).
+
 ## Data Model
 
 Seven entity types, all cross-referenceable:

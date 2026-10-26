@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { redirect } from "next/navigation";
 import pool from "@/lib/db";
 import { formatDate, formatMoney, getBillingStatus, getCurrentUserId } from "@/lib/billing";
+import { isSuperAdmin } from "@/lib/admin";
 import { MONTHLY_PRICE_ID, ONE_OFF_PRICE_ID, getPriceAmount } from "@/lib/stripe";
 import PaymentOptions from "@/components/payments/PaymentOptions";
 import AutoPayToggle from "@/components/payments/AutoPayToggle";
@@ -14,6 +15,8 @@ const card = "rounded-xl border border-[var(--color-border)] bg-[var(--color-sur
 export default async function PaymentsPage() {
   const userId = await getCurrentUserId();
   if (!userId) redirect("/login");
+  // Admins don't pay; send them to the admin dashboard instead.
+  if (await isSuperAdmin(userId)) redirect("/admin");
 
   const billing = await getBillingStatus(userId);
   // null if Stripe keys/price IDs are missing or wrong; the page still shows status and history.
@@ -105,7 +108,7 @@ export default async function PaymentsPage() {
               {history.map((p) => (
                 <tr key={p.id} className="border-t border-[var(--color-border)]">
                   <td className="py-2">{formatDate(p.created_at)}</td>
-                  <td className="py-2">{p.kind === "subscription" ? "Auto-pay" : "One month"}</td>
+                  <td className="py-2">{p.kind === "subscription" ? "Auto-pay" : p.kind === "manual" ? "Manual" : "One month"}</td>
                   <td className="py-2 text-[var(--color-muted)]">
                     {formatDate(p.period_start)} – {formatDate(p.period_end)}
                   </td>

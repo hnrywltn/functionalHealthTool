@@ -9,8 +9,9 @@ function getKey() {
   return new TextEncoder().encode(secret);
 }
 
-export async function createSessionToken(userId: string, email: string) {
-  return new SignJWT({ email })
+// mustChangePassword makes proxy.ts confine the session to /set-password.
+export async function createSessionToken(userId: string, email: string, mustChangePassword = false) {
+  return new SignJWT(mustChangePassword ? { email, mustChangePassword: true } : { email })
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(userId)
     .setIssuedAt()

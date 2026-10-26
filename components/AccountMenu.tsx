@@ -9,7 +9,7 @@ import { logout } from "@/app/login/actions";
 const itemClass =
   "block w-full text-left px-4 py-2 text-sm text-[var(--color-text)] hover:bg-[var(--color-background)] transition-colors";
 
-export default function AccountMenu() {
+export default function AccountMenu({ isAdmin = false }: { isAdmin?: boolean }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -30,7 +30,7 @@ export default function AccountMenu() {
     };
   }, [open]);
 
-  if (pathname === "/login") return null;
+  if (pathname === "/login" || pathname === "/set-password") return null;
 
   return (
     <div className="flex justify-end px-6 pt-4">
@@ -49,9 +49,15 @@ export default function AccountMenu() {
             <span className={`${itemClass} text-[var(--color-muted)] hover:bg-transparent cursor-default flex justify-between`}>
               Settings <span className="text-xs">Soon</span>
             </span>
-            <Link href="/payments" onClick={() => setOpen(false)} className={itemClass}>
-              Payments
-            </Link>
+            {isAdmin ? (
+              <Link href="/admin" onClick={() => setOpen(false)} className={itemClass}>
+                Admin
+              </Link>
+            ) : (
+              <Link href="/payments" onClick={() => setOpen(false)} className={itemClass}>
+                Payments
+              </Link>
+            )}
             <div className="my-1 border-t border-[var(--color-border)]" />
             <form action={logout}>
               <button type="submit" className={itemClass}>

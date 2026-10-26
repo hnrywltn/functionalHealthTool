@@ -27,7 +27,7 @@ export default function Sidebar() {
     if (savedCollapsed) setCollapsed(savedCollapsed === "true");
   }, []);
 
-  if (pathname === "/" || pathname === "/login") return null;
+  if (pathname === "/" || pathname === "/login" || pathname === "/set-password") return null;
 
   async function toggleExpand(entityType: string) {
     if (expanded === entityType) { setExpanded(null); return; }

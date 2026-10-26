@@ -519,6 +519,10 @@ async function migrate() {
       "stripe_subscription_id TEXT",
       "stripe_subscription_status TEXT",
       "stripe_cancel_at_period_end BOOLEAN NOT NULL DEFAULT FALSE",
+      // Super admins (Henry) get /admin and skip billing. Set by hand in SQL only.
+      "is_super_admin BOOLEAN NOT NULL DEFAULT FALSE",
+      // Forces a new password on next login (for accounts created with a temp password).
+      "must_change_password BOOLEAN NOT NULL DEFAULT FALSE",
     ]) {
       await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS ${col}`);
     }
